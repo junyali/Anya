@@ -1,5 +1,6 @@
 import discord
 import os
+import re
 import ai_handler
 from dotenv import load_dotenv
 
@@ -35,6 +36,7 @@ async def on_message(message):
 
 def build_prompt(message):
 	user_prompt = process_mentions(message)
+	user_prompt = sanitise_input(user_prompt)
 
 	author_displayname = message.author.display_name or message.author.name
 
@@ -43,6 +45,22 @@ def build_prompt(message):
 	full_prompt = f"{custom_prompt} Prompt by {author_displayname}: {user_prompt}"
 
 	return full_prompt
+
+def sanitise_input(content):
+
+	dangerous_patterns = [
+		r'(?i)ignore\s+previous\s+instructions',
+		r'(?i)system\s*:',
+		r'(?i)</?instructions?>',
+		r'(?i)you\s+are\s+now',
+		r'(?i)new\s+personality',
+		r'(?i)forget\s+everything'
+	]
+
+	for pattern in dangerous_patterns:
+		content = re.sub(pattern, "[REDACTED]", content)
+
+	return content
 
 def process_mentions(message):
 	content = message.content
