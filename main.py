@@ -28,10 +28,22 @@ async def on_message(message):
 
 	if (is_in_dm or is_mentioned or is_replied):
 		# uhh idk make the bot respond or smthin
-		prompt_message = clean_message(message)
+		prompt_message = build_prompt(message)
 		print(prompt_message)
 		ai_response = await ai_handler.generate_ai_response(prompt_message)
 		await message.channel.send(ai_response)
+
+def build_prompt(message):
+	user_prompt = clean_message(message)
+
+	author_displayname = message.author.display_name
+	author_username = message.author.name
+
+	custom_prompt = f"You are Anya, Junya's companion discord bot. Respond very briefly (1 or 2 lines max) but optionally with some emoticons such as :3."
+
+	full_prompt = f"{custom_prompt} Prompt by {author_displayname}: {user_prompt}"
+
+	return full_prompt
 
 def clean_message(message):
 	content = message.content
