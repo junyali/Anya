@@ -23,8 +23,8 @@ async def generate_ai_response(user_message):
         ai_response = response.json()
         return ai_response.get(
             "choices",
-            [{}][0].get("message", {}).get("content", "response not available")
-        )
+            [{}]
+        )[0].get("message", {}).get("content", "response not available")
 
     except requests.RequestException as e:
         print(e)

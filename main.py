@@ -28,7 +28,7 @@ async def on_message(message):
 
     if (is_in_dm or is_mentioned or is_replied):
         # uhh idk make the bot respond or smthin
-        ai_response = ai_handler.generate_ai_response(message.content)
+        ai_response = await ai_handler.generate_ai_response(message.content)
         await message.channel.send(ai_response)
 
 bot.run(TOKEN)
