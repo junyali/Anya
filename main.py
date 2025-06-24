@@ -1,13 +1,21 @@
 import discord
 import os
+import time
 import re
 import ai_handler
 from dotenv import load_dotenv
+from collections import deque
 
 load_dotenv()
 
 # super secret stuff z0mg11!!
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# uhh lets just say 10 msgs per minute
+RATELIMIT_MSG = 10
+RATE_LIMIT_TIME = 60
+
+message_timestamps = deque()
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -28,6 +36,9 @@ async def on_message(message):
 	is_replied = message.reference and message.reference.resolved and message.reference.resolved.author == bot.user
 
 	if (is_in_dm or is_mentioned or is_replied):
+		if is_rate_limited():
+			return
+
 		# uhh idk make the bot respond or smthin
 		prompt_message = build_prompt(message)
 		print(prompt_message)
@@ -100,5 +111,16 @@ def process_mentions(message):
 
 	return content.strip()
 
+def is_rate_limited():
+	now = time.time()
+
+	while message_timestamps and message_timestamps[0] < now - RATE_LIMIT_TIME:
+		message_timestamps.popleft()
+
+	if len(message_timestamps) >= RATELIMIT_MSG:
+		return True
+
+	message_timestamps.append(now)
+	return False
 
 bot.run(TOKEN)
