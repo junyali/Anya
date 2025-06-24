@@ -49,12 +49,12 @@ def build_prompt(message):
 def sanitise_input(content):
 
 	dangerous_patterns = [
-		r'(?i)ignore\s+previous\s+instructions',
-		r'(?i)system\s*:',
+		r'(?i)ignore.*instructions',
+		r'(?i)system\s*[:=]',
 		r'(?i)</?instructions?>',
 		r'(?i)you\s+are\s+now',
 		r'(?i)new\s+personality',
-		r'(?i)forget\s+everything'
+		r'(?i)forget.*everything'
 	]
 
 	for pattern in dangerous_patterns:
