@@ -38,6 +38,7 @@ def build_prompt(message):
 	user_prompt = process_mentions(message)
 	user_prompt = sanitise_input(user_prompt)
 	user_prompt = escape_special_characters(user_prompt)
+	user_prompt = limit_message(user_prompt)
 
 	author_displayname = message.author.display_name or message.author.name
 
@@ -66,6 +67,14 @@ def sanitise_input(content):
 def escape_special_characters(content):
 	content = content.replace("```", "\\```")
 	content = content.replace('"', '\\"')
+
+	return content
+
+def limit_message(content):
+	if len(content) > 320:
+		content = "(user sent a message too long - act like it broke / overloaded you T-T)"
+	if len(content.strip()) == 0:
+		content = "(user sent an empty message - act confused ?_?)"
 
 	return content
 
