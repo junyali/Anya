@@ -1,7 +1,6 @@
 import discord
 import os
-import requests
-import json
+import ai_handler
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,6 +28,7 @@ async def on_message(message):
 
     if (is_in_dm or is_mentioned or is_replied):
         # uhh idk make the bot respond or smthin
-        await message.channel.send("hii im alive!!")
+        ai_response = ai_handler.generate_ai_response(message.content)
+        await message.channel.send(ai_response)
 
 bot.run(TOKEN)
