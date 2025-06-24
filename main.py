@@ -3,6 +3,7 @@ import os
 import time
 import re
 import ai_handler
+from discord.ext import commands
 from dotenv import load_dotenv
 from collections import deque
 
@@ -20,11 +21,15 @@ message_timestamps = deque()
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="#", intents=intents)
 
 @bot.event
 async def on_ready():
 	print("hello i am in fact alive :3")
+	try:
+		synced = await bot.tree.sync()
+	except Exception as e:
+		print(e)
 
 @bot.event
 async def on_message(message):
@@ -57,6 +62,8 @@ async def on_message(message):
 					await message.add_reaction(reactions)
 				except discord.HTTPException as e:
 					print(e)
+
+	await bot.process_commands(message)
 
 
 def build_prompt(message):
