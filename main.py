@@ -49,6 +49,16 @@ async def on_message(message):
 		async with message.channel.typing():
 			await message.reply(ai_response)
 
+			reactions = await get_ai_reaction(prompt_message)
+			print(reactions)
+
+			if reactions:
+				try:
+					await message.add_reaction(reactions)
+				except discord.HTTPException as e:
+					print(e)
+
+
 def build_prompt(message):
 	user_prompt = process_mentions(message)
 	user_prompt = sanitise_input(user_prompt)
@@ -62,6 +72,12 @@ def build_prompt(message):
 	full_prompt = f"{custom_prompt} Prompt by {author_displayname}: {user_prompt}"
 
 	return full_prompt
+
+async def get_ai_reaction(content):
+
+	ai_response = await ai_handler.generate_ai_emoji(content)
+
+	return ai_response
 
 def sanitise_input(content):
 
