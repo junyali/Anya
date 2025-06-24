@@ -37,6 +37,7 @@ async def on_message(message):
 def build_prompt(message):
 	user_prompt = process_mentions(message)
 	user_prompt = sanitise_input(user_prompt)
+	user_prompt = escape_special_characters(user_prompt)
 
 	author_displayname = message.author.display_name or message.author.name
 
@@ -59,6 +60,12 @@ def sanitise_input(content):
 
 	for pattern in dangerous_patterns:
 		content = re.sub(pattern, "[REDACTED]", content)
+
+	return content
+
+def escape_special_characters(content):
+	content = content.replace("```", "\\```")
+	content = content.replace('"', '\\"')
 
 	return content
 
