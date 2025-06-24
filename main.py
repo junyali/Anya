@@ -25,7 +25,7 @@ async def on_message(message):
     is_mentioned = bot.user in message.mentions
     is_replied = message.reference and message.reference.resolved and message.reference.resolved.author == bot.user
 
-    if (is_in_dm and is_mentioned and is_replied):
+    if (is_in_dm or is_mentioned or is_replied):
         # uhh idk make the bot respond or smthin
         pass
 
