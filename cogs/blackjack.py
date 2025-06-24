@@ -10,6 +10,8 @@ class Game:
 		self.dealer_hand = []
 		self.game_over = False
 
+		self.deal_initial_cards()
+
 	def create_deck(self):
 		suits = ["♠", "♥", "♦", "♣"]
 		ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
