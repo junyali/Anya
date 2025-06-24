@@ -34,10 +34,9 @@ async def on_message(message):
 		await message.channel.send(ai_response)
 
 def build_prompt(message):
-	user_prompt = clean_message(message)
+	user_prompt = process_mentions(message)
 
-	author_displayname = message.author.display_name
-	author_username = message.author.name
+	author_displayname = message.author.display_name or message.author.name
 
 	custom_prompt = f"You are Anya, Junya's companion discord bot. Respond very briefly (1 or 2 lines max) but optionally with some emoticons such as :3."
 
@@ -45,13 +44,22 @@ def build_prompt(message):
 
 	return full_prompt
 
-def clean_message(message):
+def process_mentions(message):
 	content = message.content
 
 	for mention in message.mentions:
-		if mention == bot.user:
-			content = content.replace(f"<@{mention.id}>", "").strip()
-			content = content.replace(f"<@!{mention.id}>", "").strip()
+		mention_patterns = [f"<@{mention.id}>", f"<@!{mention.id}>"]
+
+		for pattern in mention_patterns:
+			if pattern in content:
+				if mention == bot.user:
+					content = content.replace(pattern, "(yourself)")
+				else:
+					display_name = mention.display_name or mention.name
+					content = content.replace(pattern, f"{display_name}")
+
+	for role in message.role_mentions:
+		content = content.replace(f"<@&{role.id}>", f"{role.name} role")
 
 	return content.strip()
 
