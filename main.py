@@ -31,6 +31,9 @@ async def on_message(message):
 	if message.author == bot.user:
 		return
 
+	if message.author.bot:
+		return
+
 	is_in_dm = isinstance(message.channel, discord.DMChannel)
 	is_mentioned = bot.user in message.mentions
 	is_replied = message.reference and message.reference.resolved and message.reference.resolved.author == bot.user
