@@ -28,7 +28,18 @@ async def on_message(message):
 
 	if (is_in_dm or is_mentioned or is_replied):
 		# uhh idk make the bot respond or smthin
-		ai_response = await ai_handler.generate_ai_response(message.content)
+		ai_response = await ai_handler.generate_ai_response(clean_message(message))
 		await message.channel.send(ai_response)
+
+def clean_message(message):
+	content = message.content
+
+	for mention in message.mentions:
+		if mention == bot.user:
+			content = content.replace(f"<@{mention.id}>", "").strip()
+			content = content.replace(f"<@!{mention.id}>", "").strip()
+
+	return content.strip()
+
 
 bot.run(TOKEN)
