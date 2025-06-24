@@ -1,5 +1,7 @@
 import discord
 import os
+import requests
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,6 +29,6 @@ async def on_message(message):
 
     if (is_in_dm or is_mentioned or is_replied):
         # uhh idk make the bot respond or smthin
-        pass
+        await message.channel.send("hii im alive!!")
 
 bot.run(TOKEN)
