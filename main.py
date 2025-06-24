@@ -43,7 +43,8 @@ async def on_message(message):
 		prompt_message = build_prompt(message)
 		print(prompt_message)
 		ai_response = await ai_handler.generate_ai_response(prompt_message)
-		await message.channel.send(ai_response)
+		async with message.channel.typing():
+			await message.reply(ai_response)
 
 def build_prompt(message):
 	user_prompt = process_mentions(message)
