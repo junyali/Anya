@@ -83,3 +83,9 @@ class AIHandler:
 			await self.session.close()
 
 _ai_handler = AIHandler()
+
+async def generate_ai_response(user_message: str) -> str:
+	return await _ai_handler.generate_response(user_message)
+
+async def generate_ai_emoji(user_message: str) -> str:
+	return await _ai_handler.generate_emoji(user_message)
