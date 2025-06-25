@@ -1,61 +1,85 @@
-import requests
-import json
+import aiohttp
+import asyncio
+from typing import Optional
 
-async def generate_ai_response(user_message):
-	try:
-		response = requests.post(
-			"https://ai.hackclub.com/chat/completions",
-			headers={
-				"Content-Type": "application/json"
-			},
-			json={
-				"messages": [
-					{
-						"role": "user",
-						"content": user_message
-					}
-				]
+class AIHandler:
+	def __init__(self, api_url: str = "https://ai.hackclub.com/chat/completions"):
+		self.api_url = api_url
+		self.session = None
+
+	async def __aenter__(self):
+		self.session = aiohttp.ClientSession()
+		return self
+
+	async def __aexit__(self, exc_type, exc_val, exc_tb):
+		if self.session:
+			await self.session.close()
+
+	async def _make_request(self, messages: list) -> Optional[str]:
+		if not self.session:
+			self.session = aiohttp.ClientSession()
+
+		try:
+			async with self.session.post(
+				self.api_url,
+				headers={
+					"Content-Type": "application/json"
+				},
+				json={
+					"messages": messages
+				},
+				timeout=aiohttp.ClientTimeout(total=5)
+			) as response:
+				response.raise_for_status()
+				data = await response.json()
+				return data.get(
+					"choices",
+					[{}]
+				)[0].get(
+					"message",
+					{}
+				).get(
+					"content"
+				)
+
+		except asyncio.TimeoutError:
+			print("time out boooo")
+			return None
+		except aiohttp.ClientError as e:
+			print(e)
+			return None
+		except Exception as e:
+			print(e)
+			return None
+
+	async def generate_response(self, user_message: str) -> str:
+		messages = [
+			{
+				"role": "user",
+				"content": user_message
 			}
-		)
+		]
 
-		response.raise_for_status()
+		response = await self._make_request(messages)
 
-		ai_response = response.json()
-		return ai_response.get(
-			"choices",
-			[{}]
-		)[0].get("message", {}).get("content", "response not available")
+		return response or "umm i did not work :p"
 
-	except requests.RequestException as e:
-		print(e)
-		return "umm i did not work :p"
+	async def generate_emoji(self, user_message: str) -> str:
+		prompt = f"Based on this message: '{user_message}', response with exactly ONE relevant standard unicode emoji if you can find a suitable one. If no emoji fits well, respond with ONLY 'none'. Only return the emoji character or 'none', NOTHING else."
 
-async def generate_ai_emoji(user_message):
-	try:
-		response = requests.post(
-			"https://ai.hackclub.com/chat/completions",
-			headers={
-				"Content-Type": "application/json"
-			},
-			json={
-				"messages": [
-					{
-						"role": "user",
-						"content": f"Based on this message: '{user_message}', respond with exactly ONE relevant standard unicode emoji if you can find a suitable one. If no emoji fits well, respond with 'none'. Only return the emoji character or 'none', nothing else."
-					}
-				]
+		messages = [
+			{
+				"role": "user",
+				"content": prompt
 			}
-		)
+		]
 
-		response.raise_for_status()
+		response = await self._make_request(messages)
 
-		ai_response = response.json()
+		return response or "none"
 
-		return ai_response.get(
-			"choices",
-			[{}]
-		)[0].get("message", {}).get("content", "none")
+	async def close(self):
+		if self.session:
+			await self.session.close()
 
-	except requests.RequestException as e:
-		print(e)
-		return "none"
+_ai_handler = AIHandler()
