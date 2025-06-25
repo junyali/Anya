@@ -9,12 +9,18 @@ from collections import deque
 
 load_dotenv()
 
-# super secret stuff z0mg11!!
-TOKEN = os.getenv("DISCORD_TOKEN")
+class Config:
+	# super secret stuff z0mg11!!
+	TOKEN = os.getenv("DISCORD_TOKEN")
 
-# uhh lets just say 10 msgs per minute
-RATELIMIT_MSG = 10
-RATE_LIMIT_TIME = 60
+	# rate limiting stuff
+	RATE_LIMIT_MESSAGES = 30
+	RATE_LIMIT_WINDOW = 60
+
+	RATE_LIMIT_MESSAGES_LOCAL = 10
+	RATe_LIMIT_WINDOW_LOCAL = 60
+
+	MAX_MESSAGE_LENGTH = 320
 
 message_timestamps = deque()
 
@@ -137,13 +143,13 @@ def process_mentions(message):
 def is_rate_limited():
 	now = time.time()
 
-	while message_timestamps and message_timestamps[0] < now - RATE_LIMIT_TIME:
+	while message_timestamps and message_timestamps[0] < now - Config.RATE_LIMIT_WINDOW:
 		message_timestamps.popleft()
 
-	if len(message_timestamps) >= RATELIMIT_MSG:
+	if len(message_timestamps) >= Config.RATE_LIMIT_MESSAGES:
 		return True
 
 	message_timestamps.append(now)
 	return False
 
-bot.run(TOKEN)
+bot.run(Config.TOKEN)
