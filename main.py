@@ -5,7 +5,7 @@ import re
 import ai_handler
 from discord.ext import commands
 from dotenv import load_dotenv
-from collections import deque
+from collections import deque, defaultdict
 
 load_dotenv()
 
@@ -22,7 +22,41 @@ class Config:
 
 	MAX_MESSAGE_LENGTH = 320
 
-message_timestamps = deque()
+class RateLimiter:
+	def __init__(self, max_messages: int, time_window: int, max_messages_local: int, time_window_local: int):
+		self.__max_messages = max_messages
+		self.__time_window = time_window
+
+		self.__max_messages_local = max_messages_local or self.__max_messages
+		self.__time_window_local = time_window_local or self.__time_window
+
+		self.__message_timestamps = deque()
+		self.__user_timestamps = defaultdict(deque)
+
+	def is_rate_limited_locally(self, user_id: int) -> bool:
+		now = time.time()
+		user_deque = self.__user_timestamps[user_id]
+
+		while user_deque and user_deque[0] < now - self.__time_window_local:
+			user_deque.popleft()
+
+		if len(user_deque) >= self.__max_messages_local:
+			return True
+
+		user_deque.append(now)
+		return False
+
+	def is_rate_limited_globally(self) -> bool:
+		now = time.time()
+
+		while self.__message_timestamps and self.__message_timestamps[0] < now - self.__time_window:
+			self.__message_timestamps.popleft()
+
+		if len(self.__message_timestamps) >= self.__max_messages:
+			return True
+
+		self.__message_timestamps.append(now)
+		return False
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -139,17 +173,5 @@ def process_mentions(message):
 		content = content.replace(f"<@&{role.id}>", f"{role.name} role")
 
 	return content.strip()
-
-def is_rate_limited():
-	now = time.time()
-
-	while message_timestamps and message_timestamps[0] < now - Config.RATE_LIMIT_WINDOW:
-		message_timestamps.popleft()
-
-	if len(message_timestamps) >= Config.RATE_LIMIT_MESSAGES:
-		return True
-
-	message_timestamps.append(now)
-	return False
 
 bot.run(Config.TOKEN)
