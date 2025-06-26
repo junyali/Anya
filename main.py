@@ -98,7 +98,7 @@ class MessageParser:
 		return content
 
 	@staticmethod
-	def process_mentions(message: discord.Message, bot_user: discord.User) -> str:
+	def process_mentions(message: discord.Message, bot_user: discord.abc.User) -> str:
 		content = message.content
 
 		for mention in message.mentions:
