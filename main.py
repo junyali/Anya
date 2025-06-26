@@ -2,6 +2,7 @@ import discord
 import os
 import time
 import re
+import logging
 import ai_handler
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -193,16 +194,16 @@ def main():
 	bot = AnyaBot()
 
 	if not Config.TOKEN:
-		print("token not found")
+		logging.error("DISCORD_TOKEN not found in environment variables")
 		return
 
 	try:
 		bot.run(Config.TOKEN)
 	except KeyboardInterrupt:
-		print("stopped")
+		logging.info("Bot stopped")
 		return
 	except Exception as e:
-		print(e)
+		logging.error(f"Bot crashed: {e}")
 	finally:
 		import asyncio
 		asyncio.run(ai_handler.close())
