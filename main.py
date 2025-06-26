@@ -3,6 +3,7 @@ import os
 import time
 import re
 import logging
+import asyncio
 import ai_handler
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -163,6 +164,11 @@ class AnyaBot(commands.Bot):
 	async def on_ready(self):
 		logging.info("hello i am now in fact alive :3")
 
+	async def close(self):
+		logging.info("Shutting down")
+		await ai_handler.close()
+		await super().close()
+
 	async def on_message(self, message: discord.Message):
 		if message.author.bot:
 			return
@@ -232,7 +238,6 @@ def main():
 	except Exception as e:
 		logging.error(f"Bot crashed: {e}")
 	finally:
-		import asyncio
 		asyncio.run(ai_handler.close())
 
 if __name__ == "__main__":

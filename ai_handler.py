@@ -90,5 +90,5 @@ async def generate_ai_response(user_message: str) -> str:
 async def generate_ai_emoji(user_message: str) -> str:
 	return await _ai_handler.generate_emoji(user_message)
 
-def close():
-	_ai_handler.close()
+async def close():
+	await _ai_handler.close()
