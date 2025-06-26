@@ -120,57 +120,70 @@ async def get_ai_reaction(content):
 
 	return ai_response
 
-def sanitise_input(content):
+class MessageParser:
+	@staticmethod
+	def sanitise_input(content: str) -> str:
+		dangerous_patterns = [
+			r'(?i)ignore.*instructions',
+			r'(?i)system\s*[:=]',
+			r'(?i)</?instructions?>',
+			r'(?i)you\s+are\s+now',
+			r'(?i)new\s+personality',
+			r'(?i)forget.*everything'
+		]
 
-	dangerous_patterns = [
-		r'(?i)ignore.*instructions',
-		r'(?i)system\s*[:=]',
-		r'(?i)</?instructions?>',
-		r'(?i)you\s+are\s+now',
-		r'(?i)new\s+personality',
-		r'(?i)forget.*everything'
-	]
+		for pattern in dangerous_patterns:
+			content = re.sub(pattern, "[REDACTED]", content)
 
-	for pattern in dangerous_patterns:
-		content = re.sub(pattern, "[REDACTED]", content)
+		return content
 
-	return content
+	@staticmethod
+	def escape_special_characters(content: str) -> str:
+		return content.replace(
+			"```",
+			"\\```"
+		).replace(
+			'"',
+			'\\"'
+		)
 
-def escape_special_characters(content):
-	content = content.replace("```", "\\```")
-	content = content.replace('"', '\\"')
+	@staticmethod
+	def limit_message(content: str, max_length: int = Config.MAX_MESSAGE_LENGTH) -> str:
+		if len(content) > max_length:
+			return "(user sent a message too long - act like it broke / overloaded you T-T"
+		if len(content.strip()) == 0:
+			return "(user sent an empty message - act confused ?_?"
 
-	return content
+		return content
 
-def limit_message(content):
-	if len(content) > 320:
-		content = "(user sent a message too long - act like it broke / overloaded you T-T)"
-	if len(content.strip()) == 0:
-		content = "(user sent an empty message - act confused ?_?)"
+	@staticmethod
+	def process_mentions(message: discord.Message, bot_user: discord.User) -> str:
+		content = message.content
 
-	return content
+		for mention in message.mentions:
+			mention_patterns = [
+				f"<@{mention.id}>",
+				f"<@!{mention.id}>"
+			]
 
-def process_mentions(message):
-	content = message.content
-
-	for mention in message.mentions:
-		mention_patterns = [f"<@{mention.id}>", f"<@!{mention.id}>"]
-
-		for pattern in mention_patterns:
-			if pattern in content:
-				if mention == bot.user:
-					content = content.replace(pattern, "(yourself)")
-				else:
-					if mention == message.author:
-						content = content.replace(pattern, "myself")
+			for pattern in mention_patterns:
+				if pattern in content:
+					if mention == bot_user:
+						replacement = "(yourself)"
+					elif mention == message.author:
+						replacement = "(me|myself)"
 					else:
-						display_name = mention.display_name or mention.name
-						content = content.replace(pattern, f"{display_name}")
+						replacement = mention.display_name or mention.name
 
-	for role in message.role_mentions:
-		content = content.replace(f"<@&{role.id}>", f"{role.name} role")
+					content = content.replace(pattern, replacement)
 
-	return content.strip()
+		for role in message.role_mentions:
+			content = content.replace(
+				f"<@&{role.id}>",
+				f"{role.name} role"
+			)
+
+		return content.strip()
 
 class AnyaBot(commands.Bot):
 	def __init__(self):
@@ -189,6 +202,8 @@ class AnyaBot(commands.Bot):
 			Config.RATE_LIMIT_MESSAGES_LOCAL,
 			Config.RATE_LIMIT_WINDOW_LOCAL
 		)
+
+		self.message_parse = MessageParser()
 
 def main():
 	bot = AnyaBot()
