@@ -8,6 +8,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from collections import deque, defaultdict
 
+logging.basicConfig(
+	level=logging.INFO,
+	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+	datefmt="%Y-%m-%d %H:%M:%S"
+)
+
 load_dotenv()
 
 class Config:
