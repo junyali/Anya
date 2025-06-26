@@ -22,6 +22,8 @@ class Config:
 
 	MAX_MESSAGE_LENGTH = 320
 
+	COMMAND_PREFIX = "#"
+
 class RateLimiter:
 	def __init__(self, max_messages: int, time_window: int, max_messages_local: int, time_window_local: int):
 		self.__max_messages = max_messages
@@ -57,11 +59,6 @@ class RateLimiter:
 
 		self.__message_timestamps.append(now)
 		return False
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="#", intents=intents)
 
 @bot.event
 async def on_ready():
@@ -174,4 +171,41 @@ def process_mentions(message):
 
 	return content.strip()
 
-bot.run(Config.TOKEN)
+class AnyaBot(commands.Bot):
+	def __init__(self):
+		intents = discord.Intents.default()
+		intents.message_content = True
+
+		super().__init__(
+			command_prefix=Config.COMMAND_PREFIX,
+			intents=intents,
+			help_command=None
+		)
+
+		self.rate_limited = RateLimiter(
+			Config.RATE_LIMIT_MESSAGES,
+			Config.RATE_LIMIT_WINDOW,
+			Config.RATE_LIMIT_MESSAGES_LOCAL,
+			Config.RATE_LIMIT_WINDOW_LOCAL
+		)
+
+def main():
+	bot = AnyaBot()
+
+	if not Config.TOKEN:
+		print("token not found")
+		return
+
+	try:
+		bot.run(Config.TOKEN)
+	except KeyboardInterrupt:
+		print("stopped")
+		return
+	except Exception as e:
+		print(e)
+	finally:
+		import asyncio
+		asyncio.run(ai_handler.close())
+
+if __name__ == "__main__":
+	main()
