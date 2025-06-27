@@ -44,7 +44,20 @@ class ModerationParse:
 
 	@classmethod
 	async def parse_moderation_intent(cls, message: str) -> Optional[ModerationIntent]:
-		parsing_prompt = f""
+		parsing_prompt = f"""
+Parse this Discord moderation request and respond with ONLY a JSON object with these fields:
+- "action": one of: ban, kick, timeout, unban, untimeout
+- "target_mention": the exact mention string (like <@123>) if found, otherwise null
+- "reason": the reason give, or null if none
+- "duration": duration in minutes for timeouts, or null
+- "confidence": confidence score between 0.0 and 1.0 (1 = very certain this is a moderation request)
+Message to parse: "{message}"
+Examples:
+"ban @123 for spamming" -> {{"action": "ban", "target_mention": "@123", "reason": "for spamming", "duration": null, "confidence": 0.9}}
+"timeout @badperson 10 minutes being mean" -> {{"action": "timeout", "target_mention": "@badperson", "reason": "being mean", "duration": 10, "confidence": 0.8}}
+
+JSON Response only:
+"""
 
 class ModerationValidator:
 	@staticmethod
