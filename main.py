@@ -205,7 +205,7 @@ class AnyaBot(commands.Bot):
 					logging.info("handling as moderation")
 					return
 
-			prompt = self._build_prompt(message)
+			prompt = self.build_prompt(message)
 
 			ai_response = await ai_handler.generate_ai_response(prompt)
 
@@ -221,7 +221,7 @@ class AnyaBot(commands.Bot):
 			except discord.HTTPException as http_e:
 				pass
 
-	def _build_prompt(self, message: discord.Message) -> str:
+	def build_prompt(self, message: discord.Message) -> str:
 		user_prompt = self.message_parser.process_mentions(message, self.user)
 		user_prompt = self.message_parser.sanitise_input(user_prompt)
 		user_prompt = self.message_parser.escape_special_characters(user_prompt)

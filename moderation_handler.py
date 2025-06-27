@@ -1,9 +1,8 @@
 import json
 import re
-
 import discord
 import ai_handler
-from typing import Optional, Dict, Any, List
+from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
 
@@ -59,11 +58,12 @@ Examples:
 "ban <@123> for spamming" -> {{"action": "ban", "target_mention": "<@123>", "reason": "for spamming", "duration": null, "confidence": 0.9}}
 "timeout <@badperson> 10 minutes being mean" -> {{"action": "timeout", "target_mention": "<@badperson>", "reason": "being mean", "duration": 10, "confidence": 0.8}}
 
-JSON Response only:
+JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 """
 
 		try:
 			ai_response = await ai_handler.generate_ai_response(parsing_prompt)
+			print(ai_response)
 			parsed_data = json.loads(ai_response.strip())
 
 			target_id = None
@@ -93,7 +93,7 @@ JSON Response only:
 			)
 
 		except (json.JSONDecodeError, ValueError, KeyError) as e:
-			print(e)
+			print(f"json decode error: {e}")
 			return None
 
 class ModerationValidator:
@@ -168,10 +168,9 @@ class ModerationConfirmationView(discord.ui.View):
 
 		await interaction.response.defer()
 
-		from main import AnyaBot
 		bot_instance = interaction.client
-		if hasattr(bot_instance, "_build_prompt"):
-			prompt = bot_instance._build_prompt(self.original_message)
+		if hasattr(bot_instance, "build_prompt"):
+			prompt = bot_instance.build_prompt(self.original_message)
 			ai_response = await ai_handler.generate_ai_response(prompt)
 			await interaction.send_message(ai_response)
 
@@ -269,6 +268,7 @@ async def handle_potential_moderation(message: discord.Message, bot) -> bool:
 		return False
 
 	intent = await ModerationParser.parse_moderation_intent(content)
+	print(intent)
 	if not intent or intent.confidence < 0.5:
 		return False
 
