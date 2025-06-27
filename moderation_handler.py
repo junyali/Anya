@@ -1,10 +1,17 @@
 import json
 import re
+import logging
 import discord
 import ai_handler
 from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
+
+logging.basicConfig(
+	level=logging.INFO,
+	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+	datefmt="[%Y-%m-%d %H:%M:%S]"
+)
 
 class ModerationAction(Enum):
 	BAN = "ban"
@@ -63,8 +70,42 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 
 		try:
 			ai_response = await ai_handler.generate_ai_response(parsing_prompt)
-			print(ai_response)
+
+			logging.debug(f"Moderation AI response: {ai_response}")
+
+			if not ai_response or ai_response.strip() == "":
+				logging.warning("AI returned empty response")
+				return None
+
+			ai_response = ai_response.strip()
+
+			json_match = re.search(r'\{.*}', ai_response, re.DOTALL)
+			if json_match:
+				json_str = json_match.group(0)
+			else:
+				json_str = ai_response
+
 			parsed_data = json.loads(ai_response.strip())
+
+			if not isinstance(parsed_data, dict):
+				logging.warning("AI returned non-JSON Object")
+				return None
+
+			action_str = parsed_data.get("action", "").lower()
+			if action_str not in [action.value for action in ModerationAction]:
+				logging.warning(f"Invalid action: {action_str}")
+				return None
+
+			action = ModerationAction(action_str)
+
+			try:
+				confidence = float(parsed_data.get("confidence", 0.0))
+			except (ValueError, TypeError):
+				confidence = 0.0
+
+			if confidence < 0.5:
+				logging.debug(f"Confidence too low: {confidence}")
+				return None
 
 			target_id = None
 			target_mention = parsed_data.get("target_mention")
@@ -73,15 +114,12 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 				if mention_match:
 					target_id = int(mention_match.group(1))
 
-			action_str = parsed_data.get("action", "").lower()
-			if action_str not in [action.value for action in ModerationAction]:
-				return None
-
-			action = ModerationAction(action_str)
-			confidence = float(parsed_data.get("confidence", 0.0))
-
-			if confidence < 0.5:
-				return None
+			duration = parsed_data.get("duration")
+			if duration is not None:
+				try:
+					duration = int(duration)
+				except (ValueError, TypeError):
+					duration = None
 
 			return ModerationIntent(
 				action=action,
@@ -92,8 +130,10 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 				confidence=confidence
 			)
 
-		except (json.JSONDecodeError, ValueError, KeyError) as e:
-			print(f"json decode error: {e}")
+		except json.JSONDecodeError:
+			logging.warning(f"JSONDecodeError: {e}")
+		except (ValueError, KeyError, TypeError) as e:
+			logging.warning(f"Unexpected error: {e}")
 			return None
 
 class ModerationValidator:
