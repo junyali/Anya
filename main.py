@@ -197,6 +197,14 @@ class AnyaBot(commands.Bot):
 
 	async def _handle_ai_response(self, message: discord.Message):
 		try:
+			if message.guild:
+				from moderation_handler import handle_potential_moderation
+
+				handled_as_moderation = await handle_potential_moderation(message, self)
+				if handled_as_moderation:
+					logging.info("handling as moderation")
+					return
+
 			prompt = self._build_prompt(message)
 
 			ai_response = await ai_handler.generate_ai_response(prompt)
