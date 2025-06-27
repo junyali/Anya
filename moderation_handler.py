@@ -77,7 +77,7 @@ JSON Response only:
 			if action_str not in [action.value for action in ModerationAction]:
 				return None
 
-			action = ModerationAction[action_str]
+			action = ModerationAction(action_str)
 			confidence = float(parsed_data.get("confidence", 0.0))
 
 			if confidence < 0.5:
@@ -160,7 +160,7 @@ class ModerationConfirmationView(discord.ui.View):
 		await interaction.response.edit_message("cancelled", view=None)
 		self.stop()
 
-	discord.ui.button(label="Chat", style=discord.ButtonStyle.success, emoji="💬")
+	@discord.ui.button(label="Chat", style=discord.ButtonStyle.success, emoji="💬")
 	async def normal_chat(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if interaction.user.id != self.original_message.author.id:
 			await interaction.response.send_message("only the executor can do this", ephemeral=True)
