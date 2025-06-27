@@ -239,6 +239,7 @@ def main():
 		logging.error(f"Bot crashed: {e}")
 	finally:
 		asyncio.run(ai_handler.close())
+		logging.info("Shutdown complete")
 
 if __name__ == "__main__":
 	main()
