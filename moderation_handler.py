@@ -202,3 +202,9 @@ class ModerationConfirmationView(discord.ui.View):
 		except discord.HTTPException as e:
 			await interaction.response.send_message(e, ephemeral=True)
 
+	async def on_timeout(self):
+		try:
+			await self.original_message.delete()
+		except discord.HTTPException:
+			pass
+
