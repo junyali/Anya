@@ -1,3 +1,6 @@
+import json
+import re
+
 import discord
 import ai_handler
 from typing import Optional, Dict, Any, List
@@ -58,6 +61,40 @@ Examples:
 
 JSON Response only:
 """
+
+		try:
+			ai_response = await ai_handler.generate_ai_response(parsing_prompt)
+			parsed_data = json.loads(ai_response.strip())
+
+			target_id = None
+			target_mention = parsed_data.get("target_mention")
+			if target_mention:
+				mention_match = re.search(r'<@!?(\d+)>', target_mention)
+				if mention_match:
+					target_id = int(mention_match.group(1))
+
+			action_str = parsed_data.get("action", "").lower()
+			if action_str not in [action.value for action in ModerationAction]:
+				return None
+
+			action = ModerationAction[action_str]
+			confidence = float(parsed_data.get("confidence", 0.0))
+
+			if confidence < 0.5:
+				return None
+
+			return ModerationIntent(
+				action=action,
+				target_id=target_id,
+				target_mention=target_mention,
+				reason=parsed_data.get("reason"),
+				duration=parsed_data.get("duration"),
+				confidence=confidence
+			)
+
+		except (json.JSONDecodeError, ValueError, KeyError) as e:
+			print(e)
+			return None
 
 class ModerationValidator:
 	@staticmethod
