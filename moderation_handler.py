@@ -23,7 +23,7 @@ class ModerationIntent:
 	duration: Optional[int] = None # minutes
 	confidence: float = 0.0
 
-class ModerationParse:
+class ModerationParser:
 	MODERATION_KEYWORDS = {
 		"ban": ModerationAction.BAN,
 		"kick": ModerationAction.KICK,
@@ -257,4 +257,5 @@ class ModerationConfirmationView(discord.ui.View):
 			await self.original_message.delete()
 		except discord.HTTPException:
 			pass
+
 
