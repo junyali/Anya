@@ -1,4 +1,5 @@
 import discord
+import ai_handler
 from typing import Optional, Dict, Any, List
 from enum import Enum
 from dataclasses import dataclass
@@ -41,6 +42,10 @@ class ModerationParse:
 		message_lower = message.lower()
 		return any(keyword in message_lower for keyword in cls.MODERATION_KEYWORDS.keys())
 
+	@classmethod
+	async def parse_moderation_intent(cls, message: str) -> Optional[ModerationIntent]:
+		parsing_prompt = f""
+
 class ModerationValidator:
 	@staticmethod
 	def can_moderate_user(guild: discord.Guild, moderator: discord.member, target: discord.Member, bot: discord.Member) -> tuple[bool, str]:
@@ -78,3 +83,47 @@ class ModerationValidator:
 			action,
 			False
 		)
+
+class ModerationConfirmationView(discord.ui.View):
+	def __init__(self, intent: ModerationIntent, original_message: discord.Message):
+		super().__init__(timeout=30.0)
+		self.intent = intent
+		self.original_message = original_message
+		self.confirmed = False
+
+	@discord.ui.button(label="Execute Moderation", style=discord.ButtonStyle.danger, emoji="⚠")
+	async def confirm_moderation(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != self.original_message.author.id:
+			await interaction.response.send_message("only the executor can confirm", ephemeral=True)
+			return
+
+		await interaction.response.defer()
+		await self._execute_moderation(interaction)
+		self.confirmed = True
+		self.stop()
+
+	@discord.ui.button(label="Cancel", style=discord.ButtonStyle.secondary, emoji="❌")
+	async def cancel_moderation(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != self.original_message.author.id:
+			await interaction.response.send_message("only the executor can cancel", ephemeral=True)
+
+		await interaction.response.edit_message("cancelled", view=None)
+		self.stop()
+
+	discord.ui.button(label="Chat", style=discord.ButtonStyle.success, emoji="💬")
+	async def normal_chat(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != self.original_message.author.id:
+			await interaction.response.send_message("only the executor can do this", ephemeral=True)
+			return
+
+		await interaction.response.defer()
+
+		from main import AnyaBot
+		bot_instance = interaction.client
+		if hasattr(bot_instance, "_build_prompt"):
+			prompt = bot_instance._build_prompt(self.original_message)
+			ai_response = await ai_handler.generate_ai_response(prompt)
+			await interaction.send_message(ai_response)
+
+		self.stop()
+
