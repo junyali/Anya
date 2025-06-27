@@ -127,3 +127,78 @@ class ModerationConfirmationView(discord.ui.View):
 
 		self.stop()
 
+	async def _execute_moderation(self, interaction: discord.Interaction):
+		guild = interaction.guild
+		moderator = interaction.user
+		bot_member = guild.me
+
+		if not self.intent.target_id:
+			await interaction.response.send_message("target not identified :(", ephemeral=True)
+			return
+
+		try:
+			target = guild.get_member(self.intent.target_id)
+
+			if not target and self.intent.action not in [ModerationAction.UNBAN]:
+				target = await guild.fetch_member(self.intent.target_id)
+
+			if not target and self.intent.action not in [ModerationAction.BAN]:
+				await interaction.response.send_message("target not in server :(", ephemeral=True)
+				return
+
+		except discord.NotFound:
+			if self.intent.action not in [ModerationAction.UNBAN]:
+				await interaction.response.send_message("target not found :(", ephemeral=True)
+				return
+
+		if not ModerationValidator.has_permission_for_action(moderator, self.intent.action):
+			await interaction.response.send_message("DENIED.", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(bot_member, self.intent.action):
+			await interaction.response.send_message("i lack permissions to perform this :(", ephemeral=True)
+			return
+
+		target = guild.get_member(self.intent.target_id)
+
+		if target and self.intent.action != ModerationAction.UNBAN:
+			can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, target, bot_member)
+			if not can_moderate:
+				await interaction.response.send_message(error_msg, ephemeral=True)
+				return
+
+		reason = self.intent.reason or "idk"
+		try:
+			if self.intent.action == ModerationAction.BAN:
+				await target.ban(reason=reason, delete_message_days=0)
+				action_text = f"**Banned** {target.mention} for {reason}"
+			elif self.intent.action == ModerationAction.KICK:
+				await target.kick(reason=reason)
+				action_text = f"**Kicked** {target.mention} for {reason}"
+			elif self.intent.action == ModerationAction.TIMEOUT:
+				import datetime
+				duration = self.intent.duration or 10
+				timeout_until = discord.utils.utcnow() + datetime.timedelta(minutes=duration)
+				await target.timeout(timeout_until, reason=reason)
+				action_text = f"**Timed Out** {target.mention} for {reason} for {duration} minutes"
+			elif self.intent.action == ModerationAction.UNBAN:
+				banned_users = [entry async for entry in guild.bans()]
+				ban_entry = next((entry for entry in banned_users if entry.user.id == self.intent.target_id), None)
+				if ban_entry:
+					await guild.unban(ban_entry.user, reason=reason)
+					action_text = f"**Unbanned** {target.mention} for {reason}"
+				else:
+					raise discord.NotFound("target not banned")
+			elif self.intent.action == ModerationAction.UNTIMEOUT:
+				await target.timeout(None, reason=reason)
+				action_text = f"**Untimed Out** {target.mention} for {reason}"
+			else:
+				action_text = f"**{self.intent.action.value.title()}** performed"
+
+			await interaction.edit_original_response(view=None, content=action_text)
+
+		except discord.Forbidden:
+			await interaction.response.send_message("no permissions", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.response.send_message(e, ephemeral=True)
+
