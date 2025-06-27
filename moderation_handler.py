@@ -259,3 +259,55 @@ class ModerationConfirmationView(discord.ui.View):
 			pass
 
 
+async def handle_potential_moderation(message: discord.Message, bot) -> bool:
+	if not message.guild:
+		return False
+
+	content = message.content
+
+	if not ModerationParser.has_moderation_keywords(content):
+		return False
+
+	intent = await ModerationParser.parse_moderation_intent(content)
+	if not intent or intent.confidence < 0.5:
+		return False
+
+	embed = discord.Embed(
+		title="moderation request??",
+		description="might be tweaking but what do u want me to do?",
+		color=0xF39C12
+	)
+
+	embed.add_field(
+		name="action",
+		value=f"**{intent.action.value.title()}** {intent.target_mention or "unknown target"}",
+		inline=False
+	)
+
+	if intent.reason:
+		embed.add_field(
+			name="reason",
+			value=intent.reason,
+			inline=False
+		)
+
+	if intent.duration:
+		embed.add_field(
+			name="duration",
+			value=intent.duration,
+			inline=False
+		)
+
+	embed.add_field(
+		name="confidence",
+		value=intent.confidence,
+		inline=True
+	)
+
+	embed.set_footer(text="click buttons pls")
+
+	view = ModerationConfirmationView(intent, message)
+	await message.reply(embed=embed, view=view)
+
+	return True
+
