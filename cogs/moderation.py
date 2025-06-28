@@ -171,6 +171,50 @@ class ModerationCog(commands.Cog):
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to timeout: {e}", ephemeral=True)
 
+	@app_commands.command(name="unshush", description="unshush a user")
+	@app_commands.describe(
+		user="the user to unshush",
+		reason="the reason for the unshush"
+	)
+	@has_moderation_permissions()
+	async def untimeout_command(self,
+		interaction: discord.Interaction,
+        user: discord.Member,
+        reason: str = "no reason provided"
+	):
+		await interaction.response.defer(ephemeral=True)
+
+		moderator = interaction.user
+		guild = interaction.guild
+		bot_member = guild.me
+
+		if not user.is_timed_out():
+			await interaction.followup.send("user is not shushed!", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(moderator, ModerationAction.UNTIMEOUT):
+			await interaction.followup.send("you don't have perms :(", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(bot_member, ModerationAction.UNTIMEOUT):
+			await interaction.followup.send("i don't have perms :(", ephemeral=True)
+			return
+
+		try:
+			await user.timeout(None, reason=reason)
+
+			embed = discord.Embed(
+				title="🔊 user unshushed",
+				description=f"**{user.mention}** has been unshushed for {reason}",
+				color=0x28AE60
+			)
+
+			await interaction.followup.send(embed=embed)
+			await interaction.followup.send("executed successfully! :3", ephemeral=True)
+		except discord.Forbidden:
+			await interaction.followup.send("no permissions T-T", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to unshush: {e}", ephemeral=True)
 
 async def setup_bot(bot: commands.Bot):
 	await bot.add_cog(ModerationCog(bot))
