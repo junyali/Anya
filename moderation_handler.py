@@ -130,7 +130,7 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 				confidence=confidence
 			)
 
-		except json.JSONDecodeError:
+		except json.JSONDecodeError as e:
 			logging.warning(f"JSONDecodeError: {e}")
 		except (ValueError, KeyError, TypeError) as e:
 			logging.warning(f"Unexpected error: {e}")
