@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 import logging
@@ -327,9 +328,11 @@ class ModerationConfirmationView(discord.ui.View):
 
 	async def on_timeout(self):
 		try:
-			await self.reply_message.followup.send("your request timed out T-T", ephemeral=True)
-		except Exception as e:
-			logging.warning(f"{e}")
+			if self.reply_message:
+				await self.reply_message.edit(content="request timed out T-T", embed=None, view=None)
+				await asyncio.sleep(10)
+		except discord.HTTPException:
+			pass
 
 		try:
 			if self.reply_message:
