@@ -1,6 +1,6 @@
 import discord
 import logging
-
+import datetime
 from discord.ext import commands
 from discord import app_commands
 from moderation_handler import ModerationAction, ModerationValidator
@@ -121,6 +121,55 @@ class ModerationCog(commands.Cog):
 			await interaction.followup.send("no permissions T-T", ephemeral=True)
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to kick: {e}", ephemeral=True)
+
+	@app_commands.command(name="shush", description="shush a user")
+	@app_commands.describe(
+		user="the user to shush",
+		duration="the duration to shush for",
+		reason="the reason for the shush"
+	)
+	@has_moderation_permissions()
+	async def timeout_command(self,
+		interaction: discord.Interaction,
+		user: discord.Member,
+		duration: app_commands.Range[int, 1, 40320],
+		reason: str = "no reason provided"
+	):
+		await interaction.response.defer(ephemeral=True)
+
+		moderator = interaction.user
+		guild = interaction.guild
+		bot_member = guild.me
+
+		if not ModerationValidator.has_permission_for_action(moderator, ModerationAction.TIMEOUT):
+			await interaction.followup.send("you don't have perms :(", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(bot_member, ModerationAction.TIMEOUT):
+			await interaction.followup.send("i don't have perms :(", ephemeral=True)
+			return
+
+		can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, user, bot_member)
+		if not can_moderate:
+			await interaction.followup.send(error_msg, ephemeral=True)
+			return
+
+		try:
+			timeout_until = discord.utils.utcnow() + datetime.timedelta(minutes=duration)
+			await user.timeout(timeout_until, reason=reason)
+
+			embed = discord.Embed(
+				title="🤫 user shushed",
+				description=f"**{user.mention}** has been shushed for {duration} minutes for {reason}",
+				color=0x9B59B6
+			)
+
+			await interaction.followup.send(embed=embed)
+			await interaction.followup.send("executed successfully! :3", ephemeral=True)
+		except discord.Forbidden:
+			await interaction.followup.send("no permissions T-T", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to timeout: {e}", ephemeral=True)
 
 
 async def setup_bot(bot: commands.Bot):
