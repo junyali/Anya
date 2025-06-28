@@ -216,5 +216,60 @@ class ModerationCog(commands.Cog):
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to unshush: {e}", ephemeral=True)
 
+	@app_commands.command(name="unexile", description="unexile a user from the server")
+	@app_commands.describe(
+		user_id="the id of the user to unexile",
+		reason="the reason for the unexile"
+	)
+	@has_moderation_permissions()
+	async def unban_command(
+		self,
+		interaction: discord.Interaction,
+		user_id: str,
+		reason: str = "no reason provided"
+	):
+		await interaction.response.defer(ephemeral=True)
+
+		moderator = interaction.user
+		guild = interaction.guild
+		bot_member = guild.me
+
+		try:
+			user_id = int(user_id)
+		except ValueError:
+			await interaction.followup.send("invalid user id dummy", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(moderator, ModerationAction.UNBAN):
+			await interaction.followup.send("you don't have perms :(", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(bot_member, ModerationAction.UNBAN):
+			await interaction.followup.send("i don't have perms :(", ephemeral=True)
+			return
+
+		try:
+			banned_users = [entry async for entry in guild.bans()]
+			ban_entry = next((entry for entry in banned_users if entry.user.id == user_id), None)
+
+			if not ban_entry:
+				await interaction.followup.send("couldn't find user or they're not banned", ephemeral=True)
+				return
+
+			await guild.unban(ban_entry.user, reason=reason)
+
+			embed = discord.Embed(
+				title="💫 user unexiled",
+				description=f"**{ban_entry.user.mention}** has been unexiled for {reason}",
+				color=0x27AE60
+			)
+
+			await interaction.followup.send(embed=embed)
+			await interaction.followup.send("executed successfully! :3", ephemeral=True)
+		except discord.Forbidden:
+			await interaction.followup.send("no permissions T-T", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to unexile: {e}", ephemeral=True)
+
 async def setup_bot(bot: commands.Bot):
 	await bot.add_cog(ModerationCog(bot))
