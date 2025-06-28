@@ -164,6 +164,8 @@ class ModerationCog(commands.Cog):
 				color=0x9B59B6
 			)
 
+			embed.add_field(name="expires", value=f"<t:{int(timeout_until.timestamp())}:R>", inline=True)
+
 			await interaction.followup.send(embed=embed)
 			await interaction.followup.send("executed successfully! :3", ephemeral=True)
 		except discord.Forbidden:
