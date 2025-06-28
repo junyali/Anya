@@ -197,7 +197,9 @@ class ModerationConfirmationView(discord.ui.View):
 	async def cancel_moderation(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if interaction.user.id != self.original_message.author.id:
 			await interaction.response.send_message("only the executor can cancel", ephemeral=True)
+			return
 
+		await interaction.response.defer(ephemeral=True)
 		await interaction.followup.send("cancelled!", ephemeral=True)
 		await self._cleanup_messages()
 		self.stop()
