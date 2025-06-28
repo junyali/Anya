@@ -74,7 +74,7 @@ class ModerationCog(commands.Cog):
 		except discord.Forbidden:
 			await interaction.followup.send("no permissions T-T", ephemeral=True)
 		except discord.HTTPException as e:
-			await interaction.followup.send(f"failed to ban: {e}", ephemeral=True)
+			await interaction.followup.send(f"failed to exile: {e}", ephemeral=True)
 
 	@app_commands.command(name="kick", description="kick a user from the server")
 	@app_commands.describe(
@@ -169,7 +169,7 @@ class ModerationCog(commands.Cog):
 		except discord.Forbidden:
 			await interaction.followup.send("no permissions T-T", ephemeral=True)
 		except discord.HTTPException as e:
-			await interaction.followup.send(f"failed to timeout: {e}", ephemeral=True)
+			await interaction.followup.send(f"failed to shush: {e}", ephemeral=True)
 
 	@app_commands.command(name="unshush", description="unshush a user")
 	@app_commands.describe(
