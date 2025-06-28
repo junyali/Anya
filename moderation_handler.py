@@ -59,11 +59,11 @@ Parse this Discord moderation request and respond with ONLY a JSON object with t
 - "target_mention": the exact mention string (like <@123>) if found, otherwise null
 - "reason": the reason give, or null if none
 - "duration": duration in minutes for timeouts, or null
-- "confidence": confidence score between 0.0 and 1.0 (1 = very certain this is a moderation request)
+- "confidence": confidence score between 0.00 and 1.00 (1 = very certain this is a moderation request, 0 = very certain this is NOT a moderation request)
 Message to parse: "{message}"
 Examples:
-"ban <@123> for spamming" -> {{"action": "ban", "target_mention": "<@123>", "reason": "for spamming", "duration": null, "confidence": 0.9}}
-"timeout <@badperson> 10 minutes being mean" -> {{"action": "timeout", "target_mention": "<@badperson>", "reason": "being mean", "duration": 10, "confidence": 0.8}}
+"ban <@123> for spamming" -> {{"action": "ban", "target_mention": "<@123>", "reason": "for spamming", "duration": null, "confidence": 0.92}}
+"timeout <@badperson> 10 minutes being mean" -> {{"action": "timeout", "target_mention": "<@badperson>", "reason": "being mean", "duration": 10, "confidence": 0.85}}
 
 JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 """
@@ -103,7 +103,7 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 			except (ValueError, TypeError):
 				confidence = 0.0
 
-			if confidence < 0.5:
+			if confidence < 0.75:
 				logging.debug(f"Confidence too low: {confidence}")
 				return None
 
@@ -340,7 +340,7 @@ async def handle_potential_moderation(message: discord.Message, bot) -> bool:
 		return False
 
 	intent = await ModerationParser.parse_moderation_intent(content)
-	if not intent or intent.confidence < 0.5:
+	if not intent or intent.confidence < 0.75:
 		return False
 
 	embed = discord.Embed(
