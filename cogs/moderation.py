@@ -76,6 +76,52 @@ class ModerationCog(commands.Cog):
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to ban: {e}", ephemeral=True)
 
+	@app_commands.command(name="kick", description="kick a user from the server")
+	@app_commands.describe(
+		user="the user to kick",
+		reason="the reason for the kick"
+	)
+	@has_moderation_permissions()
+	async def kick_command(self,
+		interaction: discord.Interaction,
+		user: discord.Member,
+		reason: str = "no reason provided"
+	):
+		await interaction.response.defer(ephemeral=True)
+
+		moderator = interaction.user
+		guild = interaction.guild
+		bot_member = guild.me
+
+		if not ModerationValidator.has_permission_for_action(moderator, ModerationAction.KICK):
+			await interaction.followup.send("you don't have perms :(", ephemeral=True)
+			return
+
+		if not ModerationValidator.has_permission_for_action(bot_member, ModerationAction.KICK):
+			await interaction.followup.send("i don't have perms :(", ephemeral=True)
+			return
+
+		can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, user, bot_member)
+		if not can_moderate:
+			await interaction.followup.send(error_msg, ephemeral=True)
+			return
+
+		try:
+			await user.kick(reason=reason)
+
+			embed = discord.Embed(
+				title="💢 user kicked",
+				description=f"**{user.mention}** has been kicked for {reason}",
+				color=0xF39C12
+			)
+
+			await interaction.followup.send(embed=embed)
+			await interaction.followup.send("executed successfully! :3", ephemeral=True)
+		except discord.Forbidden:
+			await interaction.followup.send("no permissions T-T", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to kick: {e}", ephemeral=True)
+
 
 async def setup_bot(bot: commands.Bot):
 	await bot.add_cog(ModerationCog(bot))
