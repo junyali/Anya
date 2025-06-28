@@ -229,7 +229,7 @@ class ModerationConfirmationView(discord.ui.View):
 	async def _cleanup_messages(self):
 		try:
 			if self.reply_message:
-				await self.reply_message.delete()
+				await self.reply_message.delete(view=None)
 		except discord.HTTPException:
 			pass
 
@@ -326,6 +326,17 @@ class ModerationConfirmationView(discord.ui.View):
 			await self._cleanup_messages()
 
 	async def on_timeout(self):
+		try:
+			await self.reply_message.followup.send("your request timed out T-T", ephemeral=True)
+		except Exception as e:
+			logging.warning(f"{e}")
+
+		try:
+			if self.reply_message:
+				await self.reply_message.delete()
+		except discord.HTTPException:
+			pass
+
 		try:
 			await self.original_message.delete()
 		except discord.HTTPException:
