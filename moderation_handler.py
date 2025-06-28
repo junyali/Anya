@@ -180,6 +180,7 @@ class ModerationConfirmationView(discord.ui.View):
 		self.intent = intent
 		self.original_message = original_message
 		self.confirmed = False
+		self.reply_message = None
 
 	@discord.ui.button(label="Execute Moderation", style=discord.ButtonStyle.danger, emoji="⚠")
 	async def confirm_moderation(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -197,7 +198,8 @@ class ModerationConfirmationView(discord.ui.View):
 		if interaction.user.id != self.original_message.author.id:
 			await interaction.response.send_message("only the executor can cancel", ephemeral=True)
 
-		await interaction.response.edit_message("cancelled", view=None)
+		await interaction.response.send_message("cancelled", view=None)
+		await self._cleanup_messages()
 		self.stop()
 
 	@discord.ui.button(label="Chat", style=discord.ButtonStyle.success, emoji="💬")
@@ -212,9 +214,22 @@ class ModerationConfirmationView(discord.ui.View):
 		if hasattr(bot_instance, "build_prompt"):
 			prompt = bot_instance.build_prompt(self.original_message)
 			ai_response = await ai_handler.generate_ai_response(prompt)
-			await interaction.send_message(ai_response)
+
+			await self.original_message.reply(ai_response)
+			await interaction.followup.send("treated as normal chat :3", ephemeral=True)
+		else:
+			await interaction.followup.send("couldn't process as chat T-T", ephemeral=True)
+
+		await self._cleanup_messages()
 
 		self.stop()
+
+	async def _cleanup_messages(self):
+		try:
+			if self.reply_message:
+				await self.reply_message.delete()
+		except discord.HTTPException:
+			pass
 
 	async def _execute_moderation(self, interaction: discord.Interaction):
 		guild = interaction.guild
@@ -222,41 +237,46 @@ class ModerationConfirmationView(discord.ui.View):
 		bot_member = guild.me
 
 		if not self.intent.target_id:
-			await interaction.response.send_message("target not identified :(", ephemeral=True)
+			await interaction.followup.send("target not identified :(", ephemeral=True)
+			await self._cleanup_messages()
 			return
+
+		target = None
 
 		try:
 			target = guild.get_member(self.intent.target_id)
 
 			if not target and self.intent.action not in [ModerationAction.UNBAN]:
-				target = await guild.fetch_member(self.intent.target_id)
-
-			if not target and self.intent.action not in [ModerationAction.BAN]:
-				await interaction.response.send_message("target not in server :(", ephemeral=True)
-				return
-
+				try:
+					target = await guild.fetch_member(self.intent.target_id)
+				except discord.NotFound:
+					await interaction.followup.send("target not in server :(", ephemeral=True)
+					await self._cleanup_messages()
 		except discord.NotFound:
 			if self.intent.action not in [ModerationAction.UNBAN]:
-				await interaction.response.send_message("target not found :(", ephemeral=True)
+				await interaction.followup.send("target not found :(", ephemeral=True)
+				await self._cleanup_messages()
+				return
+		finally:
+			if not ModerationValidator.has_permission_for_action(moderator, self.intent.action):
+				await interaction.followup.send("DENIED.", ephemeral=True)
+				await self._cleanup_messages()
 				return
 
-		if not ModerationValidator.has_permission_for_action(moderator, self.intent.action):
-			await interaction.response.send_message("DENIED.", ephemeral=True)
-			return
-
-		if not ModerationValidator.has_permission_for_action(bot_member, self.intent.action):
-			await interaction.response.send_message("i lack permissions to perform this :(", ephemeral=True)
-			return
-
-		target = guild.get_member(self.intent.target_id)
-
-		if target and self.intent.action != ModerationAction.UNBAN:
-			can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, target, bot_member)
-			if not can_moderate:
-				await interaction.response.send_message(error_msg, ephemeral=True)
+			if not ModerationValidator.has_permission_for_action(bot_member, self.intent.action):
+				await interaction.followup.send("i lack permissions to perform this :(", ephemeral=True)
+				await self._cleanup_messages()
 				return
+
+			if target and self.intent.action != ModerationAction.UNBAN:
+				can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, target, bot_member)
+				if not can_moderate:
+					await interaction.followup.send(error_msg, ephemeral=True)
+					await self._cleanup_messages()
+					return
 
 		reason = self.intent.reason or "idk"
+
 		try:
 			if self.intent.action == ModerationAction.BAN:
 				await target.ban(reason=reason, delete_message_days=0)
@@ -277,19 +297,31 @@ class ModerationConfirmationView(discord.ui.View):
 					await guild.unban(ban_entry.user, reason=reason)
 					action_text = f"**Unbanned** {target.mention} for {reason}"
 				else:
-					raise discord.NotFound("target not banned")
+					await interaction.followup.send("target not banned", ephemeral=True)
+					await self._cleanup_messages()
+					return
 			elif self.intent.action == ModerationAction.UNTIMEOUT:
 				await target.timeout(None, reason=reason)
 				action_text = f"**Untimed Out** {target.mention} for {reason}"
 			else:
 				action_text = f"**{self.intent.action.value.title()}** performed"
 
-			await interaction.edit_original_response(view=None, content=action_text)
+			embed = discord.Embed(
+				title="Moderation Executed",
+				description=action_text,
+				color=0x27AE60
+			)
+			embed.set_footer(text=f"Action by {moderator.display_name}")
 
+			await self.original_message.reply(embed=embed)
+			await interaction.followup.send("executed successfully! :3", ephemeral=True)
+			await self._cleanup_messages()
 		except discord.Forbidden:
-			await interaction.response.send_message("no permissions", ephemeral=True)
+			await interaction.followup.send("no permissions", ephemeral=True)
+			await self._cleanup_messages()
 		except discord.HTTPException as e:
-			await interaction.response.send_message(e, ephemeral=True)
+			await interaction.followup.send(e, ephemeral=True)
+			await self._cleanup_messages()
 
 	async def on_timeout(self):
 		try:
@@ -308,7 +340,6 @@ async def handle_potential_moderation(message: discord.Message, bot) -> bool:
 		return False
 
 	intent = await ModerationParser.parse_moderation_intent(content)
-	print(intent)
 	if not intent or intent.confidence < 0.5:
 		return False
 
@@ -334,20 +365,25 @@ async def handle_potential_moderation(message: discord.Message, bot) -> bool:
 	if intent.duration:
 		embed.add_field(
 			name="duration",
-			value=intent.duration,
+			value=f"{intent.duration} minutes",
 			inline=False
 		)
 
 	embed.add_field(
 		name="confidence",
-		value=intent.confidence,
+		value=f"{intent.confidence:.0%}",
 		inline=True
 	)
 
 	embed.set_footer(text="click buttons pls")
 
 	view = ModerationConfirmationView(intent, message)
-	await message.reply(embed=embed, view=view)
+
+	try:
+		reply_msg = await message.reply(embed=embed, view=view, mention_author=False)
+		view.reply_message = reply_msg
+	except discord.HTTPException:
+		await message.reply(embed=embed, view=view, mention_author=False)
 
 	return True
 
