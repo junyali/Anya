@@ -307,11 +307,11 @@ class ModerationConfirmationView(discord.ui.View):
 				action_text = f"**{self.intent.action.value.title()}** performed"
 
 			embed = discord.Embed(
-				title="Moderation Executed",
+				title="executed!!",
 				description=action_text,
 				color=0x27AE60
 			)
-			embed.set_footer(text=f"Action by {moderator.display_name}")
+			embed.set_footer(text=f"Action by {moderator.mention}")
 
 			await self.original_message.reply(embed=embed)
 			await interaction.followup.send("executed successfully! :3", ephemeral=True)
