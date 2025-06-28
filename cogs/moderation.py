@@ -15,7 +15,8 @@ class ModerationCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
-	def has_moderation_permissions(self):
+	@staticmethod
+	def has_moderation_permissions():
 		async def predicate(interaction: discord.Interaction) -> bool:
 			if not interaction.guild:
 				await interaction.followup.send("only in servers T-T", ephemeral=True)
@@ -273,5 +274,5 @@ class ModerationCog(commands.Cog):
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to unexile: {e}", ephemeral=True)
 
-async def setup_bot(bot: commands.Bot):
+async def setup(bot: commands.Bot):
 	await bot.add_cog(ModerationCog(bot))

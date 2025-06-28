@@ -157,6 +157,7 @@ class AnyaBot(commands.Bot):
 		logging.info("Initialising bot")
 
 		try:
+			await self.load_extension("cogs.moderation")
 			synced = await self.tree.sync()
 		except Exception as e:
 			logging.error(e)
