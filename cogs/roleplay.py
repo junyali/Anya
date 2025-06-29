@@ -178,7 +178,7 @@ class RoleplayCog(commands.Cog):
 			return
 
 		if avatar_url:
-			if not avatar_url.startswith("http://", "https://"):
+			if not avatar_url.startswith(("http://", "https://")):
 				await interaction.followup.send("invalid avatar url", ephemeral=True)
 				return
 
