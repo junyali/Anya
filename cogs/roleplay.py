@@ -127,6 +127,14 @@ class RoleplayCog(commands.Cog):
 					try:
 						thread = self.bot.get_channel(thread_id)
 						if thread and hasattr(thread, "edit"):
+							timeout_embed = discord.Embed(
+								title="⏰ Timed Out",
+								description="Ended due to inactivity",
+								color=0x95A5A6
+							)
+							timeout_embed.set_footer(text="pls start a new session")
+							await thread.send(embed=timeout_embed)
+
 							await thread.edit(archived=True, reason="timed out due to inactivity")
 					except discord.HTTPException:
 						pass
@@ -279,6 +287,13 @@ class RoleplayCog(commands.Cog):
 
 			thread = self.bot.get_channel(thread_id)
 			if thread and hasattr(thread, "edit"):
+				end_embed = discord.Embed(
+					title="👋 Ended",
+					description="Ended by user",
+					color=0xE74C3C
+				)
+				await thread.send(embed=end_embed)
+
 				await thread.edit(archived=True, reason="terminated by user")
 
 			await interaction.followup.send("sucessfully ended!", ephemeral=True)
