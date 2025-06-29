@@ -102,6 +102,7 @@ class RoleplayCog(commands.Cog):
 		self.active_sessions: Dict[int, RoleplaySession] = {}
 		self.rate_limiter = RateLimiter()
 		self.content_moderator = ContentModerator()
+		self.presets = {}
 
 		self.cleanup_task = asyncio.create_task(self._cleanup_sessions())
 
@@ -142,13 +143,8 @@ class RoleplayCog(commands.Cog):
 				break
 			except Exception as e:
 				logger.error(f"error in rp cleanup: {e}")
-	@app_commands.command(name="roleplay", description="Start a roleplay session with an LLM character")
-	@app_commands.describe(
-		character_name="Name of the character Anya should roleplay as",
-		character_prompt="Description of the character's personality and traits (add any extra prompts for permanent context",
-		avatar_url="Optional: URL for charcter image"
-	)
-	async def roleplay_command(
+
+	async def _create_roleplay_session(
 		self,
 		interaction: discord.Interaction,
 		character_name: str,
@@ -270,6 +266,37 @@ class RoleplayCog(commands.Cog):
 		except Exception as e:
 			logger.error(f"error in roleplay command: {e}")
 			await interaction.followup.send("an error occurred T-T", ephemeral=True)
+
+	@app_commands.command(name="roleplay", description="Start a roleplay session with an LLM character")
+	@app_commands.describe(
+		character_name="Name of the character Anya should roleplay as",
+		character_prompt="Description of the character's personality and traits (add any extra prompts for permanent context",
+		avatar_url="Optional: URL for charcter image"
+	)
+	async def roleplay_command(
+		self,
+		interaction: discord.Interaction,
+		character_name: str,
+		character_prompt: str,
+		avatar_url: Optional[str] = None
+	):
+		await self._create_roleplay_session(interaction, character_name, character_prompt, avatar_url)
+
+	@app_commands.command(name="roleplay-presets", description="Start roleplay with a preset character")
+	@app_commands.describe(character="Choose a preset character")
+	@app_commands.choices(
+		character=[
+			# tba
+		]
+	)
+	async def roleplay_presets_command(self, interaction: discord.Interaction, character: str):
+		if character not in self.presets:
+			await interaction.followup.send("character preset not found :(", ephemeral=True)
+			return
+
+		preset = self.presets[character]
+
+		await self._create_roleplay_session(interaction, preset["name"], preset["prompt"], preset["avatar"])
 
 	@app_commands.command(name="end-roleplay", description="terminate your current roleplay session")
 	async def end_roleplay_command(self, interaction: discord.Interaction):
