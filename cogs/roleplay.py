@@ -170,10 +170,12 @@ class RoleplayCog(commands.Cog):
 		name_valid, name_error = self.content_moderator.validate_character_name(character_name)
 		if not name_valid:
 			await interaction.followup.send(name_error, ephemeral=True)
+			return
 
 		prompt_valid, prompt_error = self.content_moderator.validate_character_prompt(character_prompt)
 		if not prompt_valid:
 			await interaction.followup.send(prompt_error, ephemeral=True)
+			return
 
 		if avatar_url:
 			if not avatar_url.startswith("http://", "https://"):
