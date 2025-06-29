@@ -11,24 +11,21 @@ logging.basicConfig(
 	datefmt="[%Y-%m-%d %H:%M:%S]"
 )
 
+def has_moderation_permissions():
+	async def predicate(interaction: discord.Interaction) -> bool:
+		in_guild = interaction.guild
+		member = interaction.guild.get_member(interaction.user.id)
+
+		if not member and not in_guild:
+			return False
+
+		return True
+
+	return app_commands.check(predicate)
+
 class ModerationCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
-
-	@staticmethod
-	def has_moderation_permissions():
-		async def predicate(interaction: discord.Interaction) -> bool:
-			if not interaction.guild:
-				await interaction.followup.send("only in servers T-T", ephemeral=True)
-				return False
-
-			member = interaction.guild.get_member(interaction.user.id)
-			if not member:
-				await interaction.followup.send("something went wrong T-T", ephemeral=True)
-				return False
-
-			return True
-		return app_commands.check(predicate)
 
 	@app_commands.command(name="exile", description="exile a user from the server")
 	@app_commands.describe(
