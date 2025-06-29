@@ -330,15 +330,17 @@ Important instructions:
 Conversation history:
 {context}
 
-Respond as {session.character_name}:
+Respond as {session.character_name}: 
 """
-		logger.debug(system_prompt)
+
 		try:
 			async with message.channel.typing():
 				ai_response = await ai_handler.generate_ai_response(system_prompt)
 
 				if not ai_response or ai_response.strip() == "":
 					ai_response = "*looks at you in confusion...*"
+
+				logging.debug(system_prompt + ai_response)
 
 				embed = discord.Embed(
 					description=ai_response,
