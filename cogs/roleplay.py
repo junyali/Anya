@@ -110,8 +110,8 @@ class ContentModerator:
 	def sanitise_user_message(cls, message: str) -> tuple[str, bool]:
 		nsfw_detected = any(re.search(pattern, message) for pattern in cls.NSFW_PATTERNS)
 
-		if len(message) > ROLEPLAY_CONFIG.MAX_MESSAGE_LENGTH:
-			message = message[:ROLEPLAY_CONFIG.MAX_MESSAGE_LENGTH] + "... [message truncated]"
+		if len(message) > ROLEPLAY_CONFIG.MAX_USER_MESSAGE_LENGTH:
+			message = message[:ROLEPLAY_CONFIG.MAX_USER_MESSAGE_LENGTH] + "... [message truncated]"
 
 		return message, nsfw_detected
 
