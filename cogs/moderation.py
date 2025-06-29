@@ -52,6 +52,7 @@ class ModerationCog(commands.Cog):
 
 		if not ModerationValidator.has_permission_for_action(bot_member, ModerationAction.BAN):
 			await interaction.followup.send("i don't have perms :(", ephemeral=True)
+			return
 
 		can_moderate, error_msg = ModerationValidator.can_moderate_user(guild, moderator, user, bot_member)
 		if not can_moderate:
