@@ -274,12 +274,12 @@ class RoleplayCog(commands.Cog):
 		thread_id, session = user_session
 
 		try:
+			self.rate_limiter.remove_session(session.user_id)
+			del self.active_sessions[thread_id]
+
 			thread = self.bot.get_channel(thread_id)
 			if thread and hasattr(thread, "edit"):
 				await thread.edit(archived=True, reason="terminated by user")
-
-			self.rate_limiter.remove_session(session.user_id)
-			del self.active_sessions[thread_id]
 
 			await interaction.followup.send("sucessfully ended!", ephemeral=True)
 		except discord.HTTPException as e:
