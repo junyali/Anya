@@ -217,6 +217,27 @@ class RoleplayCog(commands.Cog):
 				color=0x3498DB
 			)
 
+			intro_embed.add_field(
+				name="⚡ limits",
+				value=(
+					"* 1 session at a time only\n"
+					"* rate limits apply - pls be respectful of them\n"
+					"sessions auto-close after inactivity - use /end-roleplay to terminate a session"
+				),
+				inline=True
+			)
+
+			intro_embed.add_field(
+				name="💡 guidelines",
+				value=(
+					"* no nsfw pls\n"
+					"* all conversations are public\n"
+					"* only you can chat with your character\n"
+					"* context history is limited"
+				),
+				inline=True
+			)
+
 			if avatar_url:
 				intro_embed.set_author(name=character_name, icon_url=avatar_url)
 
