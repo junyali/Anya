@@ -295,7 +295,25 @@ class RoleplayCog(commands.Cog):
 	@app_commands.describe(character="Choose a preset character")
 	@app_commands.choices(
 		character=[
-			# tba
+			# anime.py
+			app_commands.Choice(name="Minato Aqua [Anime]", value="anime_aqua"),
+			app_commands.Choice(name="Firefly [Anime]", value="anime_firefly"),
+			app_commands.Choice(name="Shirakami Fubuki [Anime]", value="anime_fubuki"),
+			app_commands.Choice(name="Gawr Gura [Anime]", value="anime_gura"),
+			app_commands.Choice(name="Remu [Anime]", value="anime_rem"),
+			app_commands.Choice(name="Sameko Saba [Anime]", value="anime_saba"),
+
+			# games.py
+			app_commands.Choice(name="GLaDOS [Game]", value="game_glados"),
+			app_commands.Choice(name="Sans [Game]", value="game_sans"),
+			app_commands.Choice(name="Wheatley [Game]", value="game_wheatley"),
+
+			# memes.py
+			app_commands.Choice(name="Gordon Ramsay [Meme]", value="meme_gordon"),
+			app_commands.Choice(name="UwU [Meme]", value="meme_uwu"),
+
+			# if you're looking at this then uhhh ignore spaghet code T-T
+			# feel free to make a pr to add more presets, but discord has a limit of 25 choices per command
 		]
 	)
 	async def roleplay_presets_command(self, interaction: discord.Interaction, character: str):
