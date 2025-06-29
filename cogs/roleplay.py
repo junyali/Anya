@@ -108,6 +108,11 @@ class RoleplayCog(commands.Cog):
 		self.rate_limiter = RateLimiter()
 		self.content_moderator = ContentModerator()
 
+		self.cleanup_task = asyncio.create_task(self._cleanup_sessions())
+
+	def cog_unload(self):
+		self.cleanup_task.cancel()
+
 	async def _cleanup_sessions(self):
 		while True:
 			try:
