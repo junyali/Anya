@@ -78,15 +78,6 @@ class RateLimiter:
 			self.global_sessions -= 1
 
 class ContentModerator:
-	FORBIDDEN_PATTERNS = [
-		r'(?i)ignore.*instructions',
-		r'(?i)system\s*[:=]',
-		r'(?i)</?instructions?>',
-		r'(?i)you\s+are\s+now',
-		r'(?i)new\s+personality',
-		r'(?i)forget.*everything'
-	]
-
 	NSFW_PATTERNS = [
 		r'(?i)\b(sexual|erotic|intimate|adult)\b',
 		r'(?i)\b(nude|naked|undressed)\b'
@@ -95,10 +86,6 @@ class ContentModerator:
 	def validate_character_prompt(cls, prompt: str) -> tuple[bool, str]:
 		if len(prompt) > ROLEPLAY_CONFIG.MAX_CHARACTER_PROMPT_LENGTH:
 			return False, F"prompt too long ({ROLEPLAY_CONFIG.MAX_CHARACTER_PROMPT_LENGTH} characters max)"
-
-		for pattern in cls.FORBIDDEN_PATTERNS:
-			if re.search(pattern, prompt):
-				return False, "ik what you're trying to do :)"
 
 		for pattern in cls.NSFW_PATTERNS:
 			if re.search(pattern, prompt):
@@ -121,9 +108,6 @@ class ContentModerator:
 
 	@classmethod
 	def sanitise_user_message(cls, message: str) -> tuple[str, bool]:
-		for pattern in cls.FORBIDDEN_PATTERNS:
-			message = re.sub(pattern, "[REDACTED]", message)
-
 		nsfw_detected = any(re.search(pattern, message) for pattern in cls.NSFW_PATTERNS)
 
 		if len(message) > ROLEPLAY_CONFIG.MAX_MESSAGE_LENGTH:
