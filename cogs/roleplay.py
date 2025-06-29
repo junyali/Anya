@@ -1,3 +1,4 @@
+import asyncio
 import re
 import discord
 import logging
@@ -101,6 +102,35 @@ class RoleplayCog(commands.Cog):
 	def __init(self, bot: commands.Bot):
 		self.bot = bot
 		self.active_sessions: Dict[int, RoleplaySession] = {}
+		self.rate_limiter = RateLimiter()
+		self.content_moderator = ContentModerator()
+
+	async def _cleanup_sessions(self):
+		while True:
+			try:
+				await asyncio.sleep(600) # 10 min check
+				now = time.time()
+				inactive_sessions = []
+
+				for thread_id, session in self.active_sessions.items():
+					if now - session.last_activity > 1800: # remove inactive sessions after 30 mins
+						inactive_sessions.append(thread_id)
+
+				for thread_id in inactive_sessions:
+					session = self.active_sessions[thread_id]
+					self.rate_limiter.remove_session(session.user_id)
+					del self.active_sessions[thread_id]
+
+					try:
+						thread = self.bot.get_channel(thread_id)
+						if thread and hasattr(thread, "edit"):
+							await thread.edit(archived=True, reason="timed out due to inactivity")
+					except discord.HTTPException:
+						pass
+			except asyncio.CancelledError:
+				break
+			except Exception as e:
+				logging.error(f"error in rp cleanup: {e}")
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(RoleplayCog(bot))
