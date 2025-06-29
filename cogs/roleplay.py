@@ -152,38 +152,36 @@ class RoleplayCog(commands.Cog):
 		character_prompt: str,
 		avatar_url: Optional[str] = None
 	):
-		await interaction.response.defer(ephemeral=True)
-
 		if not interaction.guild:
-			await interaction.followup.send("sorry, this command is only available in servers :(", ephemeral=True)
+			await interaction.response.send_message("sorry, this command is only available in servers :(", ephemeral=True)
 			return
 
 		if isinstance(interaction.channel, discord.Thread):
-			await interaction.followup.send("you can't start a roleplay in a thread, silly :)", ephemeral=True)
+			await interaction.response.send_message("you can't start a roleplay in a thread, silly :)", ephemeral=True)
 			return
 
 		can_create, error_msg = self.rate_limiter.can_create_session(interaction.user.id)
 		if not can_create:
-			await interaction.followup.send(error_msg, ephemeral=True)
+			await interaction.response.send_message(error_msg, ephemeral=True)
 			return
 
 		name_valid, name_error = self.content_moderator.validate_character_name(character_name)
 		if not name_valid:
-			await interaction.followup.send(name_error, ephemeral=True)
+			await interaction.response.send_message(name_error, ephemeral=True)
 			return
 
 		prompt_valid, prompt_error = self.content_moderator.validate_character_prompt(character_prompt)
 		if not prompt_valid:
-			await interaction.followup.send(prompt_error, ephemeral=True)
+			await interaction.response.send_message(prompt_error, ephemeral=True)
 			return
 
 		if avatar_url:
 			if not avatar_url.startswith(("http://", "https://")):
-				await interaction.followup.send("invalid avatar url", ephemeral=True)
+				await interaction.response.send_message("invalid avatar url", ephemeral=True)
 				return
 
 			if len(avatar_url) > 512:
-				await interaction.followup.send("avatar url too long!", ephemeral=True)
+				await interaction.response.send_message("avatar url too long!", ephemeral=True)
 				return
 
 		try:
@@ -201,7 +199,8 @@ class RoleplayCog(commands.Cog):
 				except Exception as e:
 					pass
 
-			message = await interaction.followup.send(embed=embed)
+			await interaction.response.send_message(embed=embed)
+			message = await interaction.original_response()
 			thread = await message.create_thread(
 				name=f"🤖 {character_name} ~ {interaction.user.display_name}",
 				auto_archive_duration=60
