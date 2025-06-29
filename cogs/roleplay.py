@@ -79,7 +79,7 @@ class RateLimiter:
 
 class ContentModerator:
 	NSFW_PATTERNS = [
-		r'(?i)\b(sexual|erotic|intimate|adult|test)\b',
+		r'(?i)\b(sexual|erotic|intimate|adult)\b',
 		r'(?i)\b(nude|naked|undressed)\b'
 	]
 	@classmethod
