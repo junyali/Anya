@@ -1,11 +1,12 @@
 import discord
-import os
 import time
 import re
 import logging
 import asyncio
 import ai_handler
+import aiohttp
 from discord.ext import commands
+from discord import app_commands
 from config import BOT_CONFIG
 from collections import deque, defaultdict
 
@@ -219,6 +220,22 @@ class AnyaBot(commands.Bot):
 			logging.warning(e)
 		except Exception as e:
 			logging.error(e)
+
+	@app_commands.command(name="ai-model", description="Get the current AI model being used by the bot")
+	async def ai_model_command(self, interaction: discord.Interaction):
+		await interaction.response.defer()
+
+		try:
+			async with aiohttp.ClientSession() as session:
+				async with session.get(BOT_CONFIG.API_URL) as response:
+					if response.status == 200:
+						model_info = await response.text()
+						await interaction.followup.send(model_info, ephemeral=True)
+					else:
+						await interaction.followup.send("couldn't fetch model T-T", ephemeral=True)
+		except Exception as e:
+			await interaction.followup.send("error fetching model T-T", ephemeral=True)
+			logging.warn(f"failed to fetch model: {e}")
 
 def setup_logging():
 	formatter = logging.Formatter(

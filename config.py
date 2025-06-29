@@ -9,6 +9,9 @@ class BotConfig:
 	TOKEN: str = os.getenv("BOT_TOKEN")
 	COMMAND_PREFIX: str = "#"
 
+	API_URL = os.getenv("API_URL") or "https://ai.hackclub.com"
+	API_KEY = None # n/a
+
 	# rate limiting stuff
 	RATE_LIMIT_MESSAGES: int = 30
 	RATE_LIMIT_WINDOW: int = 60
