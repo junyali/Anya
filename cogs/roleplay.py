@@ -310,7 +310,7 @@ class RoleplayCog(commands.Cog):
 		# for sanitisation purposes l8r
 		user_message = message.content
 
-		session.messages.append(f"User: {user_message}")
+		session.messages.append(f"User [{message.author.display_name}]: {user_message}")
 
 		if len(session.messages) > 20:
 			session.messages = session.messages[-20:]
