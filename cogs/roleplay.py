@@ -355,7 +355,7 @@ Respond as {session.character_name}:
 				)
 
 				embed.set_footer(
-					text=f"message count {session.message_count}"
+					text=f"{session.message_count}"
 				)
 
 				await message.reply(embed=embed, mention_author=False)
