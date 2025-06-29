@@ -213,7 +213,7 @@ class RoleplayCog(commands.Cog):
 
 			intro_embed = discord.Embed(
 				title=f"💬 {character_name}",
-				description="*ready to start? just send a message in the thread to begin!",
+				description="*ready to start? just send a message in the thread to begin!*",
 				color=0x3498DB
 			)
 
