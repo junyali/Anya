@@ -9,12 +9,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from collections import deque, defaultdict
 
-logging.basicConfig(
-	level=logging.INFO,
-	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-	datefmt="[%Y-%m-%d %H:%M:%S]"
-)
-
 load_dotenv()
 
 class Config:
@@ -247,6 +241,22 @@ class AnyaBot(commands.Bot):
 		except Exception as e:
 			logging.error(e)
 
+def setup_logging():
+	formatter = logging.Formatter(
+		"%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+		datefmt="[%Y-%m-%d %H:%M:%S]"
+	)
+
+	console_handler = logging.StreamHandler()
+	console_handler.setLevel(logging.DEBUG)
+	console_handler.setFormatter(formatter)
+
+	root_logger = logging.getLogger()
+	root_logger.setLevel(logging.DEBUG)
+	root_logger.addHandler(console_handler)
+
+	logger = logging.getLogger(__name__)
+
 def main():
 	bot = AnyaBot()
 
@@ -266,4 +276,5 @@ def main():
 		logging.info("Shutdown complete")
 
 if __name__ == "__main__":
+	setup_logging()
 	main()

@@ -5,11 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 from moderation_handler import ModerationAction, ModerationValidator
 
-logging.basicConfig(
-	level=logging.INFO,
-	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-	datefmt="[%Y-%m-%d %H:%M:%S]"
-)
+logger = logging.getLogger(__name__)
 
 def has_moderation_permissions():
 	async def predicate(interaction: discord.Interaction) -> bool:

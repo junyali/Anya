@@ -3,11 +3,7 @@ import logging
 import asyncio
 from typing import Optional
 
-logging.basicConfig(
-	level=logging.INFO,
-	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-	datefmt="[%Y-%m-%d %H:%M:%S]"
-)
+logger = logging.getLogger(__name__)
 
 class AIHandler:
 	def __init__(self, api_url: str = "https://ai.hackclub.com/chat/completions"):
@@ -50,13 +46,13 @@ class AIHandler:
 				)
 
 		except asyncio.TimeoutError:
-			logging.warning("Timed out request")
+			logger.warning("Timed out request")
 			return None
 		except aiohttp.ClientError as e:
-			logging.error(e)
+			logger.error(e)
 			return None
 		except Exception as e:
-			logging.error(e)
+			logger.error(e)
 			return None
 
 	async def generate_response(self, user_message: str) -> str:

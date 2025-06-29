@@ -3,19 +3,14 @@ import re
 import discord
 import logging
 import time
+import ai_handler
 from typing import Optional, List, Dict
 from dataclasses import dataclass, field
 from discord.ext import commands
 from discord import app_commands
 from collections import defaultdict, deque
 
-import ai_handler
-
-logging.basicConfig(
-	level=logging.DEBUG,
-	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-	datefmt="[%Y-%m-%d %H:%M:%S]"
-)
+logger = logging.getLogger(__name__)
 
 @dataclass
 class RoleplaySession:
@@ -138,7 +133,7 @@ class RoleplayCog(commands.Cog):
 			except asyncio.CancelledError:
 				break
 			except Exception as e:
-				logging.error(f"error in rp cleanup: {e}")
+				logger.error(f"error in rp cleanup: {e}")
 	@app_commands.command(name="roleplay", description="Start a roleplay session with an LLM character")
 	@app_commands.describe(
 		character_name="Name of the character Anya should roleplay as",
@@ -259,7 +254,7 @@ class RoleplayCog(commands.Cog):
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to create roleplay session: {e}", ephemeral=True)
 		except Exception as e:
-			logging.error(f"error in roleplay command: {e}")
+			logger.error(f"error in roleplay command: {e}")
 			await interaction.followup.send("an error occurred T-T", ephemeral=True)
 
 	@app_commands.command(name="end-roleplay", description="terminate your current roleplay session")
@@ -337,7 +332,7 @@ Conversation history:
 
 Respond as {session.character_name}:
 """
-		logging.debug(system_prompt)
+		logger.debug(system_prompt)
 		try:
 			async with message.channel.typing():
 				ai_response = await ai_handler.generate_ai_response(system_prompt)
@@ -363,7 +358,7 @@ Respond as {session.character_name}:
 
 				session.messages.append(f"{session.character_name}: {ai_response}")
 		except Exception as e:
-			logging.error(f"error generating rp response: {e}")
+			logger.error(f"error generating rp response: {e}")
 			await message.reply("*unable to speak...*", delete_after=10)
 
 async def setup(bot: commands.Bot):

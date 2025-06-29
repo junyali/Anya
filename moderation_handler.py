@@ -8,11 +8,7 @@ from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
 
-logging.basicConfig(
-	level=logging.INFO,
-	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-	datefmt="[%Y-%m-%d %H:%M:%S]"
-)
+logger = logging.getLogger(__name__)
 
 class ModerationAction(Enum):
 	BAN = "ban"
@@ -72,10 +68,10 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 		try:
 			ai_response = await ai_handler.generate_ai_response(parsing_prompt)
 
-			logging.debug(f"Moderation AI response: {ai_response}")
+			logger.debug(f"Moderation AI response: {ai_response}")
 
 			if not ai_response or ai_response.strip() == "":
-				logging.warning("AI returned empty response")
+				logger.warning("AI returned empty response")
 				return None
 
 			ai_response = ai_response.strip()
@@ -89,12 +85,12 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 			parsed_data = json.loads(ai_response.strip())
 
 			if not isinstance(parsed_data, dict):
-				logging.warning("AI returned non-JSON Object")
+				logger.warning("AI returned non-JSON Object")
 				return None
 
 			action_str = parsed_data.get("action", "").lower()
 			if action_str not in [action.value for action in ModerationAction]:
-				logging.warning(f"Invalid action: {action_str}")
+				logger.warning(f"Invalid action: {action_str}")
 				return None
 
 			action = ModerationAction(action_str)
@@ -105,7 +101,7 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 				confidence = 0.0
 
 			if confidence < 0.75:
-				logging.debug(f"Confidence too low: {confidence}")
+				logger.debug(f"Confidence too low: {confidence}")
 				return None
 
 			target_id = None
@@ -132,9 +128,9 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 			)
 
 		except json.JSONDecodeError as e:
-			logging.warning(f"JSONDecodeError: {e}")
+			logger.warning(f"JSONDecodeError: {e}")
 		except (ValueError, KeyError, TypeError) as e:
-			logging.warning(f"Unexpected error: {e}")
+			logger.warning(f"Unexpected error: {e}")
 			return None
 
 class ModerationValidator:
