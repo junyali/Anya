@@ -1,12 +1,13 @@
 import aiohttp
 import logging
 import asyncio
+from config import BOT_CONFIG
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class AIHandler:
-	def __init__(self, api_url: str = "https://ai.hackclub.com/chat/completions"):
+	def __init__(self, api_url: str = BOT_CONFIG.API_URL):
 		self.api_url = api_url
 		self.session = None
 

@@ -9,7 +9,7 @@ class BotConfig:
 	TOKEN: str = os.getenv("BOT_TOKEN")
 	COMMAND_PREFIX: str = "#"
 
-	API_URL = os.getenv("API_URL") or "https://ai.hackclub.com"
+	API_URL = os.getenv("API_URL") or "https://ai.hackclub.com/chat/completions"
 	API_KEY = None # n/a
 
 	# rate limiting stuff
