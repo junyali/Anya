@@ -179,11 +179,17 @@ class RoleplayCog(commands.Cog):
 			return
 
 		if avatar_url:
-			if not avatar_url.startswith(("http://", "https://")):
+			is_url = avatar_url.startswith(("http://", "https://"))
+			is_base64 = avatar_url.startswith("data:image/")
+			if not (is_url or is_base64):
 				await interaction.response.send_message("invalid avatar url", ephemeral=True)
 				return
 
-			if len(avatar_url) > 512:
+			if is_url and len(avatar_url) > 512:
+				await interaction.response.send_message("avatar url too long!", ephemeral=True)
+				return
+
+			if is_base64 and len(avatar_url) > (8 * 1024) - 1:
 				await interaction.response.send_message("avatar url too long!", ephemeral=True)
 				return
 
