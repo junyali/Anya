@@ -152,7 +152,7 @@ class RoleplayCog(commands.Cog):
 			return
 
 		if isinstance(interaction.channel, discord.Thread):
-			await interaction.followup.send("you can't start a roleplaye in a thread, silly :)", ephemeral=True)
+			await interaction.followup.send("you can't start a roleplay in a thread, silly :)", ephemeral=True)
 			return
 
 		can_create, error_msg = self.rate_limiter.can_create_session(interaction.user.id)
