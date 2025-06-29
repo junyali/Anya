@@ -79,7 +79,7 @@ class RateLimiter:
 
 class ContentModerator:
 	NSFW_PATTERNS = [
-		r'(?i)\b(sexual|erotic|intimate|adult)\b',
+		r'(?i)\b(sexual|erotic|intimate|adult|test)\b',
 		r'(?i)\b(nude|naked|undressed)\b'
 	]
 	@classmethod
@@ -109,6 +109,9 @@ class ContentModerator:
 	@classmethod
 	def sanitise_user_message(cls, message: str) -> tuple[str, bool]:
 		nsfw_detected = any(re.search(pattern, message) for pattern in cls.NSFW_PATTERNS)
+
+		for pattern in cls.NSFW_PATTERNS:
+			message = re.sub(pattern, "[REDACTED]", message)
 
 		if len(message) > ROLEPLAY_CONFIG.MAX_USER_MESSAGE_LENGTH:
 			message = message[:ROLEPLAY_CONFIG.MAX_USER_MESSAGE_LENGTH] + "... [message truncated]"
