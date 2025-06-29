@@ -227,6 +227,32 @@ class RoleplayCog(commands.Cog):
 			logging.error(f"error in roleplay command: {e}")
 			await interaction.followup.send("an error occurred T-T", ephemeral=True)
 
+	@app_commands.command(name="end-roleplay", description="terminate your current roleplay session")
+	async def end_roleplay_command(self, interaction: discord.Interaction):
+		await interaction.response.defer(ephemeral=True)
+
+		user_session = None
+		for thread_id, session in self.active_sessions.items():
+			if session.user_id == interaction.user.id:
+				user_session = (thread_id, session)
+				break
+
+		if not user_session:
+			await interaction.followup.send("you don't have an active roleplay session", ephemeral=True)
+
+		thread_id, session = user_session
+
+		try:
+			thread = self.bot.get_channel(thread_id)
+			if thread and hasattr(thread, "edit"):
+				await thread.edit(archived=True, reason="terminated by user")
+
+			self.rate_limiter.remove_session(session.user_id)
+			del self.active_sessions[thread_id]
+
+			await interaction.followup.send("sucessfully ended!", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to end roleplay session: {e}", ephemeral=True)
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(RoleplayCog(bot))
