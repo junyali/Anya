@@ -102,7 +102,7 @@ class ContentModerator:
 		return True, ""
 
 class RoleplayCog(commands.Cog):
-	def __init(self, bot: commands.Bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 		self.active_sessions: Dict[int, RoleplaySession] = {}
 		self.rate_limiter = RateLimiter()
