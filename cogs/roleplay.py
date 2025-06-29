@@ -224,13 +224,19 @@ class RoleplayCog(commands.Cog):
 			)
 
 			intro_embed.add_field(
+				name="📨 prompt",
+				value=f"*{character_prompt}*",
+				inline=False
+			)
+
+			intro_embed.add_field(
 				name="⚡ limits",
 				value=(
 					"* 1 session at a time only\n"
 					"* rate limits apply - pls be respectful of them\n"
-					"sessions auto-close after inactivity - use /end-roleplay to terminate a session"
+					"* sessions auto-close after inactivity - use /end-roleplay to terminate a session"
 				),
-				inline=True
+				inline=False
 			)
 
 			intro_embed.add_field(
@@ -241,7 +247,7 @@ class RoleplayCog(commands.Cog):
 					"* only you can chat with your character\n"
 					"* context history is limited"
 				),
-				inline=True
+				inline=False
 			)
 
 			if avatar_url:
