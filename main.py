@@ -158,6 +158,7 @@ class AnyaBot(commands.Bot):
 
 		try:
 			await self.load_extension("cogs.moderation")
+			await self.load_extension("cogs.roleplay")
 			synced = await self.tree.sync()
 		except Exception as e:
 			logging.error(e)
