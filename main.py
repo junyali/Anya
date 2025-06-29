@@ -173,6 +173,11 @@ class AnyaBot(commands.Bot):
 
 	async def _handle_ai_response(self, message: discord.Message):
 		try:
+			if isinstance(message.channel, discord.Thread):
+				roleplay_cog = self.get_cog("RoleplayCog")
+				if roleplay_cog and message.channel.id in roleplay_cog.active_sessions:
+					return
+
 			if message.guild:
 				from moderation_handler import handle_potential_moderation
 
