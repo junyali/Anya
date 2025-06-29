@@ -345,20 +345,28 @@ class RoleplayCog(commands.Cog):
 			self.rate_limiter.remove_session(session.user_id)
 			del self.active_sessions[thread_id]
 
-			thread = self.bot.get_channel(thread_id)
-			if thread and hasattr(thread, "edit"):
-				end_embed = discord.Embed(
-					title="👋 Ended",
-					description="Ended by user",
-					color=0xE74C3C
-				)
-				await thread.send(embed=end_embed)
+			try:
+				thread = self.bot.get_channel(thread_id)
+				if thread and hasattr(thread, "edit"):
+					end_embed = discord.Embed(
+						title="👋 Ended",
+						description="Ended by user",
+						color=0xE74C3C
+					)
+					await thread.send(embed=end_embed)
 
-				await thread.edit(archived=True, reason="terminated by user")
+					await thread.edit(archived=True, reason="terminated by user")
+			except Exception as e:
+				logger.warning(f"failed to update thread {thread_id}: {e}")
 
 			await interaction.followup.send("sucessfully ended!", ephemeral=True)
-		except discord.HTTPException as e:
-			await interaction.followup.send(f"failed to end roleplay session: {e}", ephemeral=True)
+		except Exception as e:
+			try:
+				if thread_id in self.active_sessions:
+					del self.active_sessions[thread_id]
+				self.rate_limiter.remove_session(interaction.user.id)
+			except:
+				pass
 
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
