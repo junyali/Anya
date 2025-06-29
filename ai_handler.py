@@ -65,7 +65,7 @@ class AIHandler:
 
 		response = await self._make_request(messages)
 
-		return response or "umm i did not work :p"
+		return response or "*timed out*"
 
 	async def generate_emoji(self, user_message: str) -> str:
 		prompt = f"Based on this message: '{user_message}', response with exactly ONE relevant standard unicode emoji if you can find a suitable one. If no emoji fits well, respond with ONLY 'none'. Only return the emoji character or 'none', NOTHING else."
