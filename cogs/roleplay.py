@@ -287,7 +287,21 @@ class RoleplayCog(commands.Cog):
 			session.messages = session.messages[-20:]
 
 		context = "\n".join(session.messages[-10:])
-		system_prompt = "" # oh boy here we go
+		system_prompt = f"""
+You are {session.character_name}. {session.character_prompt}
+
+Important instructions:
+- Stay completely in character as {session.character_name}
+- Respond naturally and conversationally
+- Keep responses under 256 words
+- Don't break character or mention being an AI
+- Be interactive :)
+
+Conversation history:
+{context}
+
+Respond as {session.character_name}:
+"""
 
 		try:
 			async with message.channel.typing():
