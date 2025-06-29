@@ -6,6 +6,7 @@ import time
 from typing import Optional, List, Dict
 from dataclasses import dataclass, field
 from discord.ext import commands
+from discord import app_commands
 from collections import defaultdict, deque
 
 logging.basicConfig(
@@ -131,6 +132,101 @@ class RoleplayCog(commands.Cog):
 				break
 			except Exception as e:
 				logging.error(f"error in rp cleanup: {e}")
+	@app_commands.command(name="roleplay", description="Start a roleplay session with an LLM character")
+	@app_commands.describe(
+		character_name="Name of the character Anya should roleplay as",
+		character_prompt="Description of the character's personality and traits (add any extra prompts for permanent context",
+		avatar_url="Optional: URL for charcter image"
+	)
+	async def roleplay_command(
+		self,
+		interaction: discord.Interaction,
+		character_name: str,
+		character_prompt: str,
+		avatar_url: Optional[str] = None
+	):
+		await interaction.response.defer(ephemeral=True)
+
+		if not interaction.guild:
+			await interaction.followup.send("sorry, this command is only available in servers :(", ephemeral=True)
+			return
+
+		if isinstance(interaction.channel, discord.Thread):
+			await interaction.followup.send("you can't start a roleplaye in a thread, silly :)", ephemeral=True)
+			return
+
+		can_create, error_msg = self.rate_limiter.can_create_session(interaction.user.id)
+		if not can_create:
+			await interaction.followup.send(error_msg, ephemeral=True)
+			return
+
+		name_valid, name_error = self.content_moderator.validate_character_name(character_name)
+		if not name_valid:
+			await interaction.followup.send(name_error, ephemeral=True)
+
+		prompt_valid, prompt_error = self.content_moderator.validate_character_prompt(character_prompt)
+		if not prompt_valid:
+			await interaction.followup.send(prompt_error, ephemeral=True)
+
+		if avatar_url:
+			if not avatar_url.startswith("http://", "https://"):
+				await interaction.followup.send("invalid avatar url", ephemeral=True)
+				return
+
+			if len(avatar_url) > 512:
+				await interaction.followup.send("avatar url too long!", ephemeral=True)
+				return
+
+		try:
+			embed = discord.Embed(
+				title="🤖 Roleplay Session",
+				description=f"Roleplaying as {character_name} with {interaction.user.mention}",
+				color=0x9B59B6
+			)
+
+			embed.set_footer(text="session closes after inactivity")
+
+			if avatar_url:
+				try:
+					embed.set_thumbnail(url=avatar_url)
+				except Exception as e:
+					pass
+
+			message = await interaction.followup.send(embed=embed)
+			thread = await message.create_thread(
+				name=f"🤖 {character_name} ~ {interaction.user.display_name}",
+				auto_archive_duration=60
+			)
+
+			session = RoleplaySession(
+				character_name=character_name,
+				character_prompt=character_prompt,
+				user_id=interaction.user.id,
+				thread_id=thread.id,
+				avatar_url=avatar_url
+			)
+
+			self.active_sessions[thread.id] = session
+			self.rate_limiter.add_session(interaction.user.id)
+
+			intro_embed = discord.Embed(
+				title=f"💬 {character_name}",
+				description="*ready to start? just send a message in the thread to begin!",
+				color=0x3498DB
+			)
+
+			if avatar_url:
+				intro_embed.set_author(name=character_name, icon_url=avatar_url)
+
+			await thread.send(embed=intro_embed)
+
+			await interaction.followup.send(f"created roleplay successfully! head over to {thread.mention} to start :3", ephemeral=True)
+		except discord.HTTPException as e:
+			await interaction.followup.send(f"failed to create roleplay session: {e}", ephemeral=True)
+		except Exception as e:
+			logging.error(f"error in roleplay command: {e}")
+			await interaction.followup.send("an error occurred T-T", ephemeral=True)
+
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(RoleplayCog(bot))
