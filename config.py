@@ -6,7 +6,7 @@ load_dotenv()
 
 @dataclass
 class BotConfig:
-	TOKEN: str = os.getenv("BOT_TOKEN") or ""
+	TOKEN: str = os.getenv("DISCORD_TOKEN") or ""
 	COMMAND_PREFIX: str = "#"
 
 	API_URL = os.getenv("API_URL") or "https://ai.hackclub.com/chat/completions"
