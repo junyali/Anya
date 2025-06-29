@@ -6,33 +6,17 @@ import logging
 import asyncio
 import ai_handler
 from discord.ext import commands
-from dotenv import load_dotenv
+from config import BOT_CONFIG
 from collections import deque, defaultdict
 
-load_dotenv()
-
-class Config:
-	# super secret stuff z0mg11!!
-	TOKEN = os.getenv("DISCORD_TOKEN")
-
-	# rate limiting stuff
-	RATE_LIMIT_MESSAGES = 30
-	RATE_LIMIT_WINDOW = 60
-
-	RATE_LIMIT_MESSAGES_LOCAL = 10
-	RATE_LIMIT_WINDOW_LOCAL = 60
-
-	MAX_MESSAGE_LENGTH = 320
-
-	COMMAND_PREFIX = "#"
 
 class RateLimiter:
-	def __init__(self, max_messages: int, time_window: int, max_messages_local: int, time_window_local: int):
-		self.__max_messages = max_messages
-		self.__time_window = time_window
+	def __init__(self):
+		self.__max_messages = BOT_CONFIG.RATE_LIMIT_MESSAGES
+		self.__time_window = BOT_CONFIG.RATE_LIMIT_WINDOW
 
-		self.__max_messages_local = max_messages_local or self.__max_messages
-		self.__time_window_local = time_window_local or self.__time_window
+		self.__max_messages_local = BOT_CONFIG.RATE_LIMIT_MESSAGES_LOCAL
+		self.__time_window_local = BOT_CONFIG.RATE_LIMIT_WINDOW_LOCAL
 
 		self.__message_timestamps = deque()
 		self.__user_timestamps = defaultdict(deque)
@@ -90,7 +74,7 @@ class MessageParser:
 		)
 
 	@staticmethod
-	def limit_message(content: str, max_length: int = Config.MAX_MESSAGE_LENGTH) -> str:
+	def limit_message(content: str, max_length: int = BOT_CONFIG.MAX_MESSAGE_LENGTH) -> str:
 		if len(content) > max_length:
 			return "(user sent a message too long - act like it broke / overloaded you T-T"
 		if len(content.strip()) == 0:
@@ -133,17 +117,12 @@ class AnyaBot(commands.Bot):
 		intents.message_content = True
 
 		super().__init__(
-			command_prefix=Config.COMMAND_PREFIX,
+			command_prefix=BOT_CONFIG.COMMAND_PREFIX,
 			intents=intents,
 			help_command=None
 		)
 
-		self.rate_limited = RateLimiter(
-			Config.RATE_LIMIT_MESSAGES,
-			Config.RATE_LIMIT_WINDOW,
-			Config.RATE_LIMIT_MESSAGES_LOCAL,
-			Config.RATE_LIMIT_WINDOW_LOCAL
-		)
+		self.rate_limited = RateLimiter()
 
 		self.message_parser = MessageParser()
 
@@ -260,12 +239,12 @@ def setup_logging():
 def main():
 	bot = AnyaBot()
 
-	if not Config.TOKEN:
+	if not BOT_CONFIG.TOKEN:
 		logging.error("DISCORD_TOKEN not found in environment variables")
 		return
 
 	try:
-		bot.run(Config.TOKEN)
+		bot.run(BOT_CONFIG.TOKEN)
 	except KeyboardInterrupt:
 		logging.info("Bot stopped")
 		return

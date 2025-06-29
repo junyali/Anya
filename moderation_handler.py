@@ -6,6 +6,7 @@ import discord
 import ai_handler
 from typing import Optional
 from enum import Enum
+from config import MODERATION_CONFIG
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -96,11 +97,11 @@ JSON Response only (NO CODE BLOCKS OR OTHER RESPONSE - PLAINTEXT ONLY):
 			action = ModerationAction(action_str)
 
 			try:
-				confidence = float(parsed_data.get("confidence", 0.0))
+				confidence = float(parsed_data.get("confidence", MODERATION_CONFIG.FALLBACK_CONFIDENCE))
 			except (ValueError, TypeError):
-				confidence = 0.0
+				confidence = MODERATION_CONFIG.FALLBACK_CONFIDENCE
 
-			if confidence < 0.75:
+			if confidence < MODERATION_CONFIG.MIN_CONFIDENCE_THRESHOLD:
 				logger.debug(f"Confidence too low: {confidence}")
 				return None
 
@@ -352,7 +353,7 @@ async def handle_potential_moderation(message: discord.Message, bot) -> bool:
 		return False
 
 	intent = await ModerationParser.parse_moderation_intent(content)
-	if not intent or intent.confidence < 0.75:
+	if not intent or intent.confidence < MODERATION_CONFIG.MIN_CONFIDENCE_THRESHOLD:
 		return False
 
 	embed = discord.Embed(
