@@ -42,10 +42,10 @@ class RateLimiter:
 			user_commands.popleft()
 
 		if len(user_commands) >= ROLEPLAY_CONFIG.MAX_SESSIONS_PER_DAY:
-			return False, "you can only have 1 roleplays at a time >:("
+			return False, "too many recent roleplays >:("
 
 		if self.user_sessions[user_id] >= ROLEPLAY_CONFIG.MAX_SESSIONS_PER_USER:
-			return False, "you already have a roleplay in progress.."
+			return False, "you have reached the max limit for concurrent roleplays.."
 
 		if self.global_sessions >= ROLEPLAY_CONFIG.MAX_GLOBAL_SESSIONS:
 			return False, "too many active roleplays at the moment..."
