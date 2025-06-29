@@ -1,3 +1,4 @@
+import re
 import discord
 import logging
 import time
@@ -74,6 +75,27 @@ class RateLimiter:
 
 		if self.global_sessions > 0:
 			self.global_sessions -= 1
+
+class ContentModerator:
+	@classmethod
+	def validate_character_prompt(cls, prompt: str) -> tuple[bool, str]:
+		if len(prompt) > 1024:
+			return False, "prompt too long (1024 characters max)"
+
+		return True, ""
+
+	@classmethod
+	def validate_character_name(cls, name: str) -> tuple[bool, str]:
+		if len(name) > 64:
+			return False, "name too long (64 characters max)"
+
+		if len(name.strip()) < 1:
+			return False, "invalid name"
+
+		if not re.match(r'^[a-zA-Z0-9\s\-_.()]+$', name):
+			return False, "pls keep names english"
+
+		return True, ""
 
 class RoleplayCog(commands.Cog):
 	def __init(self, bot: commands.Bot):
