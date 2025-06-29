@@ -119,6 +119,18 @@ class ContentModerator:
 
 		return True, ""
 
+	@classmethod
+	def sanitise_user_message(cls, message: str) -> tuple[str, bool]:
+		for pattern in cls.FORBIDDEN_PATTERNS:
+			message = re.sub(pattern, "[REDACTED]", message)
+
+		nsfw_detected = any(re.search(pattern, message) for pattern in cls.NSFW_PATTERNS)
+
+		if len(message) > ROLEPLAY_CONFIG.MAX_MESSAGE_LENGTH:
+			message = message[:ROLEPLAY_CONFIG.MAX_MESSAGE_LENGTH] + "... [message truncated]"
+
+		return message, nsfw_detected
+
 def load_presets():
 	presets = {}
 	presets.update({f"anime_{k}": v for k, v in anime.CHARACTERS.items()})
@@ -415,13 +427,11 @@ class RoleplayCog(commands.Cog):
 		# for sanitisation purposes l8r
 		user_message = message.content
 
-		nsfw_detect = False
-		for pattern in ContentModerator.NSFW_PATTERNS:
-			if re.search(pattern, user_message):
-				nsfw_detect = True
+		sanitisation_result = ContentModerator.sanitise_user_message(user_message)
+		user_message = sanitisation_result[0]
 
-		if nsfw_detect:
-			user_message = "[REDACTED due to NSFW content - act shocked, confused, etc..]"
+		if sanitisation_result[1]:
+			user_message = f"(system note: the following message was censored due to nsfw content detected; act shocked, confused, etc): {user_message}"
 
 		session.messages.append(f"User [{message.author.display_name}]: {user_message}")
 
