@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from discord.ext import commands
 from discord import app_commands
 from collections import defaultdict, deque
+from rppresets import anime, games, memes
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +97,21 @@ class ContentModerator:
 
 		return True, ""
 
+def load_presets():
+	presets = {}
+	presets.update({f"anime_{k}": v for k, v in anime.CHARACTERS.items()})
+	presets.update({f"game_{k}": v for k, v in games.CHARACTERS.items()})
+	presets.update({f"meme_{k}": v for k, v in memes.CHARACTERS.items()})
+
+	return presets
+
 class RoleplayCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 		self.active_sessions: Dict[int, RoleplaySession] = {}
 		self.rate_limiter = RateLimiter()
 		self.content_moderator = ContentModerator()
-		self.presets = {}
+		self.presets = load_presets()
 
 		self.cleanup_task = asyncio.create_task(self._cleanup_sessions())
 
