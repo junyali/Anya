@@ -9,6 +9,8 @@ from discord.ext import commands
 from discord import app_commands
 from collections import defaultdict, deque
 
+import ai_handler
+
 logging.basicConfig(
 	level=logging.INFO,
 	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -253,6 +255,67 @@ class RoleplayCog(commands.Cog):
 			await interaction.followup.send("sucessfully ended!", ephemeral=True)
 		except discord.HTTPException as e:
 			await interaction.followup.send(f"failed to end roleplay session: {e}", ephemeral=True)
+
+	@commands.Cog.listener()
+	async def on_message(self, message: discord.Message):
+		if message.author.bot:
+			return
+
+		if message.channel.id not in self.active_sessions:
+			return
+
+		session = self.active_sessions[message.channel.id]
+
+		if message.author.id != session.user_id:
+			await message.add_reaction("👻")
+			return
+
+		can_send, error_msg = self.rate_limiter.can_send_message(message.author.id)
+		if not can_send:
+			await message.reply(error_msg, delete_after=10)
+			return
+
+		session.last_activity = time.time()
+		session.message_count += 1
+
+		# for sanitisation purposes l8r
+		user_message = message.content
+
+		session.messages.append(f"User: {user_message}")
+
+		if len(session.messages) > 20:
+			session.messages = session.messages[-20:]
+
+		context = "\n".join(session.messages[-10:])
+		system_prompt = "" # oh boy here we go
+
+		try:
+			async with message.channel.typing():
+				ai_response = await ai_handler.generate_ai_response(system_prompt)
+
+				if not ai_response or ai_response.strip() == "":
+					ai_response = "*looks at you in confusion...*"
+
+				embed = discord.Embed(
+					description=ai_response,
+					color=0x3498DB
+				)
+
+				embed.set_author(
+					name=session.character_name,
+					icon_url=session.avatar_url if session.avatar_url else None
+				)
+
+				embed.set_footer(
+					text=f"message count {session.message_count}"
+				)
+
+				await message.reply(embed=embed, mention_author=False)
+
+				session.messages.append(f"{session.character_name}: {ai_response}")
+		except Exception as e:
+			logging.error(f"error generating rp response: {e}")
+			await message.reply("*unable to speak...*", delete_after=10)
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(RoleplayCog(bot))
