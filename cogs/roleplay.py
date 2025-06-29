@@ -269,6 +269,7 @@ class RoleplayCog(commands.Cog):
 
 		if not user_session:
 			await interaction.followup.send("you don't have an active roleplay session", ephemeral=True)
+			return
 
 		thread_id, session = user_session
 
