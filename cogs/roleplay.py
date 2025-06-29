@@ -78,10 +78,31 @@ class RateLimiter:
 			self.global_sessions -= 1
 
 class ContentModerator:
+	FORBIDDEN_PATTERNS = [
+		r'(?i)ignore.*instructions',
+		r'(?i)system\s*[:=]',
+		r'(?i)</?instructions?>',
+		r'(?i)you\s+are\s+now',
+		r'(?i)new\s+personality',
+		r'(?i)forget.*everything'
+	]
+
+	NSFW_PATTERNS = [
+		r'(?i)\b(sexual|erotic|intimate|adult)\b',
+		r'(?i)\b(nude|naked|undressed)\b'
+	]
 	@classmethod
 	def validate_character_prompt(cls, prompt: str) -> tuple[bool, str]:
 		if len(prompt) > ROLEPLAY_CONFIG.MAX_CHARACTER_PROMPT_LENGTH:
 			return False, F"prompt too long ({ROLEPLAY_CONFIG.MAX_CHARACTER_PROMPT_LENGTH} characters max)"
+
+		for pattern in cls.FORBIDDEN_PATTERNS:
+			if re.search(pattern, prompt):
+				return False, "ik what you're trying to do :)"
+
+		for pattern in cls.NSFW_PATTERNS:
+			if re.search(pattern, prompt):
+				return False, "no. absolutely not.."
 
 		return True, ""
 
@@ -393,6 +414,14 @@ class RoleplayCog(commands.Cog):
 
 		# for sanitisation purposes l8r
 		user_message = message.content
+
+		nsfw_detect = False
+		for pattern in ContentModerator.NSFW_PATTERNS:
+			if re.search(pattern, user_message):
+				nsfw_detect = True
+
+		if nsfw_detect:
+			user_message = "[REDACTED due to NSFW content - act shocked, confused, etc..]"
 
 		session.messages.append(f"User [{message.author.display_name}]: {user_message}")
 
