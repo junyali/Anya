@@ -1,6 +1,6 @@
 # Anya Discord Bot
 
-<p align="center"><img src="./anya.png" alt="" width="64">Anya is my Discord bot companion with AI-assisted commands and quirks. She has AI roleplay capabilities, and responds to all messages mentioning her!
+<p><img src="./anya.png" alt="" width="64">Anya is my Discord bot companion with AI-assisted commands and quirks. She has AI roleplay capabilities, and responds to all messages mentioning her!
 
 (Editor's note: you're going to see a lot of this buzzword being used so buckle in :p)</p>
 
