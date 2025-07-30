@@ -68,12 +68,10 @@ Analyse the compatibility between these two Discord users and return ONLY a JSON
 User 1 Info:
 - Username: {user1_data["info"]["username"]}
 - Display Name: {user1_data["info"]["display_name"]}
-- Recent Messages: {user1_data["messages"][:5]}
 
 User 2 Info:
 - Username: {user2_data["info"]["username"]}
 - Display Name: {user2_data["info"]["display_name"]}
-- Recent Messages: {user2_data["messages"][:5]}
 
 Guidelines for percentage:
 - 0-20%: Not compatible, different vibes
