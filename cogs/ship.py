@@ -1,5 +1,7 @@
 import logging
 import discord
+import ai_handler
+import json
 from discord.ext import commands
 from typing import List, Dict, Any
 
@@ -82,6 +84,37 @@ Make the message fun and playful. For high percentages, say they're meant to be.
 
 Return ONLY the JSON, no other text. ONLY the JSON.
 """
+
+		response = ""
+
+		# i hate working with jsons
+		try:
+			response = await ai_handler.generate_ai_response(prompt)
+			response = response.strip()
+
+			start_idx = response.find("{")
+			end_idx = response.find("}") + 1
+
+			if start_idx != -1 and end_idx != 0:
+				json_str = response[start_idx:end_idx]
+				return json.loads(json_str)
+			else:
+				return {
+					"percentage": 50,
+					"message": "The cosmic forces are unclear... maybe try again? :3"
+				}
+		except json.JSONDecodeError:
+			logger.warning(f"Failed to parse AI JSON response: {response}")
+			return {
+				"percentage": 50,
+				"message": "The cosmic forces are unclear... maybe try again? :3"
+			}
+		except Exception as e:
+			logger.error(f"Error in ship cog: {e}")
+			return {
+				"percentage": -100,
+				"message": "Shipper broke, maybe I need to go find some love T-T"
+			}
 
 async def setup(bot):
 	await bot.add_cog(ShipCog(bot))
