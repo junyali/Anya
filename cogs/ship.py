@@ -61,7 +61,8 @@ Analyse the compatibility between these two Discord users and return ONLY a JSON
 
 {{
 	"percentage": <number between 0-100>,
-	"message": "<fun ship message based on the percentage>"
+	"message": "<fun ship message based on the percentage>",
+	"ship_name": "<only ONE ship name, based on the two user's display name / username (whatever works best)>"
 }}
 
 User 1 Info:
@@ -169,7 +170,7 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 			)
 
 			embed.add_field(
-				name=f"{user1.display_name} × {user2.display_name}",
+				name=f"{result["ship_name"]} ({user1.display_name} × {user2.display_name})",
 				value=f"**{percentage}%** compatible!\n{heart_bar}",
 				inline=False
 			)
