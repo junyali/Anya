@@ -149,15 +149,24 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 
 			result = await self.analyse_compatibility(user1_data, user2_data)
 
-			embed = discord.Embed(
-				title="💕 Ship Analysis 💕",
-				color=0xFF69B4
-			)
-
 			percentage = result["percentage"]
 			filled_hearts = int(percentage / 10)
 			empty_hearts = 10 - filled_hearts
 			heart_bar = ("💖" * filled_hearts) + ("🤍" * empty_hearts)
+
+			if percentage >= 80:
+				colour = 0xFF1493
+			elif percentage >= 60:
+				colour = 0xFF69B4
+			elif percentage >= 40:
+				colour = 0xFFA500
+			else:
+				colour = 0x808080
+
+			embed = discord.Embed(
+				title="💕 Ship Analysis 💕",
+				color=colour
+			)
 
 			embed.add_field(
 				name=f"{user1.display_name} × {user2.display_name}",
