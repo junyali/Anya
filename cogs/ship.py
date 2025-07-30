@@ -21,7 +21,7 @@ class ShipCog(commands.Cog):
 
 			try:
 				async for message in channel.history(limit=50):
-					if message.author == user and not message.author.bot:
+					if message.author == user and not message.author.bot and len(message.content.strip()) > 2:
 						messages.append({
 							"content": message.content[:128] + "[TRUNCATED]" if len(message.content) > 128 else message.content,
 							"timestamp": message.created_at.isoformat(),
