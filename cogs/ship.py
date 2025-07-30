@@ -16,7 +16,7 @@ class ShipCog(commands.Cog):
 		messages = []
 
 		for channel in user.guild.text_channels:
-			if not channel.permissions_for(user.guild.me).read_message_history and not channel.permissions_for(user.guild.me).read_messages:
+			if not channel.permissions_for(user.guild.me).read_message_history and not channel.permissions_for(user.guild.me).read_messages and not channel.permissions_for(user).read_messages:
 				continue
 
 			try:
