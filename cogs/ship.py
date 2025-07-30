@@ -52,5 +52,36 @@ class ShipCog(commands.Cog):
 			"activity": str(user.activity) if user.activity else None
 		}
 
+	async def analyse_compatibility(self, user1_data: Dict, user2_data: Dict) -> Dict[str, Any]:
+		prompt = f"""
+Analyse the compatibility between these two Discord users and return ONLY a JSON response with this exact format:
+
+{{
+	"percentage": <number between 0-100>,
+	"message": "<fun ship message based on the percentage>"
+}}
+
+User 1 Info:
+- Username: {user1_data["info"]["username"]}
+- Display Name: {user1_data["info"]["display_name"]}
+- Recent Messages: {user1_data["messages"][:5]}
+
+User 2 Info:
+- Username: {user2_data["info"]["username"]}
+- Display Name: {user2_data["info"]["display_name"]}
+- Recent Messages: {user2_data["messages"][:5]}
+
+Guidelines for percentage:
+- 0-20%: Not compatible, different vibes
+- 21-40%: Some potential but challenges
+- 41-60%: Decent compatibility
+- 61-80%: Good match for each other
+- 81-100%: Perfect match, practically soulmates
+
+Make the message fun and playful. For high percentages, say they're meant to be. For low percentages, suggest they're better as friends. Keep it light-hearted and appropriate. You may use emoticons like :3, T-T, <3, </3, etc...
+
+Return ONLY the JSON, no other text. ONLY the JSON.
+"""
+
 async def setup(bot):
 	await bot.add_cog(ShipCog(bot))
