@@ -3,6 +3,7 @@ import discord
 import ai_handler
 import json
 from discord.ext import commands
+from discord import app_commands
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -115,6 +116,65 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 				"percentage": -100,
 				"message": "Shipper broke, maybe I need to go find some love T-T"
 			}
+
+	@app_commands.command(name="ship", description="Ship two users and see how compatible they are <3!")
+	@app_commands.describe(
+		user1="First user to ship",
+		user2="Second user to ship"
+	)
+	async def ship_command(self, interaction: discord.Interaction, user1: discord.Member, user2: discord.Member):
+		await interaction.response.defer()
+
+		try:
+			if user1.bot or user2.bot:
+				await interaction.followup.send("Can't ship bots! They don't have feelings... yet :3", ephemeral=True)
+				return
+
+			if user1 == user2:
+				await interaction.followup.send("Can't ship someone with themselves! That's just self-love :3", ephemeral=True)
+				return
+
+			user1_messages = await self.get_user_messages(user1)
+			user2_messages = await self.get_user_messages(user2)
+
+			user1_data = {
+				"info": self.get_user_info(user1),
+				"messages": user1_messages
+			}
+
+			user2_data = {
+				"info": self.get_user_info(user2),
+				"messages": user2_messages
+			}
+
+			result = await self.analyse_compatibility(user1_data, user2_data)
+
+			embed = discord.Embed(
+				title="💕 Ship Analysis 💕",
+				color=0xFF69B4
+			)
+
+			percentage = result["percentage"]
+			filled_hearts = int(percentage / 10)
+			empty_hearts = 10 - filled_hearts
+			heart_bar = ("💖" * filled_hearts) + ("🤍" * empty_hearts)
+
+			embed.add_field(
+				name=f"{user1.display_name} × {user2.display_name}",
+				value=f"**{percentage}%** compatible!\n{heart_bar}",
+				inline=False
+			)
+
+			embed.add_field(
+				name="Analysis",
+				value=result["message"],
+				inline=False
+			)
+
+			await interaction.followup.send(embed=embed)
+		except Exception as e:
+			logger.error(f"Error in ship command: {e}")
+			await interaction.followup.send("Internal error!", ephemeral=True)
 
 async def setup(bot):
 	await bot.add_cog(ShipCog(bot))
