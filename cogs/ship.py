@@ -1,7 +1,7 @@
 import logging
 import discord
 from discord.ext import commands
-from typing import List
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,18 @@ class ShipCog(commands.Cog):
 
 		messages.sort(key=lambda x: x["timestamp"], reverse=True)
 		return [msg["content"] for msg in messages[:limit]]
+
+	def get_user_info(self, user: discord.Member) -> Dict[str, Any]:
+		return {
+			"username": user.name,
+			"display_name": user.display_name,
+			"nickname": user.nick,
+			"joined_server": user.joined_at.isoformat() if user.joined_at else None,
+			"account_created": user.created_at.isoformat(),
+			"roles": [role.name for role in user.roles if role.name != "@everyone"],
+			"status": str(user.status),
+			"activity": str(user.activity) if user.activity else None
+		}
 
 async def setup(bot):
 	await bot.add_cog(ShipCog(bot))
