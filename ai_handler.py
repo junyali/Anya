@@ -3,6 +3,7 @@ import logging
 import asyncio
 from config import BOT_CONFIG
 from typing import Optional
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,16 @@ class AIHandler:
 			logger.error(e)
 			return None
 
+	def _clean_thinking_tags(self, response: str) -> str:
+		if not response:
+			return response
+
+		cleaned = re.sub(r'<think>.*?</think>', '', response, flags=re.IGNORECASE | re.DOTALL)
+
+		cleaned = cleaned.strip()
+
+		return cleaned
+
 	async def generate_response(self, user_message: str) -> str:
 		messages = [
 			{
@@ -65,6 +76,9 @@ class AIHandler:
 		]
 
 		response = await self._make_request(messages)
+
+		if response:
+			response = self._clean_thinking_tags(response)
 
 		return response or "*timed out*"
 
@@ -79,6 +93,9 @@ class AIHandler:
 		]
 
 		response = await self._make_request(messages)
+
+		if response:
+			response = self._clean_thinking_tags(response)
 
 		return response or "none"
 
