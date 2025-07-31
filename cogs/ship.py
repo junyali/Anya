@@ -67,7 +67,7 @@ Analyse the compatibility between these two Discord users and return ONLY a JSON
 	"ship_name": "<only ONE ship name, based on the two user's display name / username (whatever works best)>"
 }}
 
-IMPORTANT: Be realistic and varied in your percentages. Don't be afraid to give lower scores, but also don't be afraid to give higher scores
+IMPORTANT: Be realistic and varied in your percentages. Don't be afraid to give lower scores, but also don't be afraid to give higher scores. If the context seems lacking, just make up a crazy number (0-100) - don't try and balance it with a midrange percentage!
 
 User 1 Info:
 - Username: {user1_data["info"]["username"]}
