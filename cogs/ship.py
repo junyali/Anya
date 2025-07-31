@@ -65,13 +65,25 @@ Analyse the compatibility between these two Discord users and return ONLY a JSON
 	"ship_name": "<only ONE ship name, based on the two user's display name / username (whatever works best)>"
 }}
 
+IMPORTANT: Be realistic and varied in your percentages. Don't be afraid to give lower scores, but also don't be afraid to give higher scores
+
 User 1 Info:
 - Username: {user1_data["info"]["username"]}
 - Display Name: {user1_data["info"]["display_name"]}
+- Account Creation Date: {user1_data["info"]["account_created"]}
+- Server Join Date: {user1_data["info"]["joined_server"]}
+- Roles: {user1_data["info"]["roles"]}
+- Status: {user1_data["info"]["status"]}
+- Activity: {user1_data["info"]["activity"]}
 
 User 2 Info:
 - Username: {user2_data["info"]["username"]}
 - Display Name: {user2_data["info"]["display_name"]}
+- Account Creation Date: {user2_data["info"]["account_created"]}
+- Server Join Date: {user2_data["info"]["joined_server"]}
+- Roles: {user2_data["info"]["roles"]}
+- Status: {user2_data["info"]["status"]}
+- Activity: {user2_data["info"]["activity"]}
 
 Guidelines for percentage:
 - 0-20%: Not compatible, different vibes
