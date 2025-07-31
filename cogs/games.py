@@ -154,7 +154,7 @@ JSON only, no other text.
 				icon_url=member.display_avatar.url
 			)
 
-			thumbnail_url = self.get_random_anime_image("https://api.waifu.pics/sfw/waifu")
+			thumbnail_url = await self.get_random_anime_image("https://api.waifu.pics/sfw/waifu")
 			if thumbnail_url:
 				embed.set_thumbnail(url=thumbnail_url)
 
