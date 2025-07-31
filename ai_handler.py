@@ -47,8 +47,8 @@ class AIHandler:
 					"content"
 				)
 
-		except asyncio.TimeoutError:
-			logger.warning("Timed out request")
+		except asyncio.TimeoutError as e:
+			logger.warning(f"Timed out: {e}")
 			return None
 		except aiohttp.ClientError as e:
 			logger.error(e)
