@@ -2,6 +2,7 @@ import logging
 import ai_handler
 import json
 import random
+import re
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,10 @@ JSON only, no other text.
 			response_message = "Hmph! {} timeout for you, baka! 😤"
 
 			return duration, response_message
+
+	def is_691_trigger(self, content: str) -> bool:
+		pattern = r'^r/691$'
+		return bool(re.match(pattern, content.strip(), re.IGNORECASE))
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(GamesCog(bot))
