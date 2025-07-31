@@ -94,7 +94,7 @@ JSON only, no other text.
 			return duration, response_message
 
 	def is_691_trigger(self, content: str) -> bool:
-		pattern = r'^r/691$'
+		pattern = r'^r/691'
 		return bool(re.match(pattern, content.strip(), re.IGNORECASE))
 
 	async def get_random_anime_image(self, url) -> str:
