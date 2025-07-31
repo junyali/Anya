@@ -46,23 +46,24 @@ Duration guidelines:
 - Absolute legendary posts / feeling mean: Very, very long timeouts (up to 24 hours)
 - Use variety! Don't always pick the same ranges or any arbitrary numbers
 - Duration in SECONDS only. I repeat, SECONDS, NOT HOURS, up to 86400 seconds.
+- Include tsundere personality (act annoyed but secretly caring)
+- MUST include "DURATION_PLACEHOLDER" in the tsundere_message (but DO NOT put seconds, minutes, hours, etc)
+- Can reference what they posted if you want
+- Make your own variations based off the response examples below if you want
 
 Message: {message}
 
 Tsundere response examples:
-- "Hmph! You asked for it, baka! Enjoy your {{}} timeout! 😤"
-- "I-It's not like I wanted to timeout you or anything! {{}} should teach you! 😤"
-- "S-Stupid! Did you really think you'd get away with that?! {{}} for you!"
-- "Ugh! Fine! Take your {{}} and think about what you've done, idiot!"
-- "D-Don't get the wrong idea! I'm only timing you out for {{}} because I have to!"
-- "You're so annoying! Here's your {{}} timeout! Maybe that'll teach you!"
-- "N-Not that I'm enjoying this... but {{}} timeout seems fitting, baka!"
+- "Hmph! You asked for it, baka! Enjoy your DURATION_PLACEHOLDER timeout! 😤"
+- "I-It's not like I wanted to timeout you or anything! DURATION_PLACEHOLDER should teach you! 😤"
+- "S-Stupid! Did you really think you'd get away with that?! DURATION_PLACEHOLDER for you!"
+- "Ugh! Fine! Take your DURATION_PLACEHOLDER and think about what you've done, idiot!"
+- "D-Don't get the wrong idea! I'm only timing you out for DURATION_PLACEHOLDER because I have to!"
+- "You're so annoying! Here's your DURATION_PLACEHOLDER timeout! Maybe that'll teach you!"
+- "N-Not that I'm enjoying this... but DURATION_PLACEHOLDER timeout seems fitting, baka!"
 
-Respond with ONLY this JSON format:
-{{
-	"duration_seconds": <number between 1-86400>,
-	"tsundere_message": "<message with {{}} where duration goes, under 128 characters>"
-}}
+Respond with ONLY this JSON format (copy format EXACTLY):
+{{"duration_seconds": <number between 1-86400>,"tsundere_message": "<Your message with DURATION_PLACEHOLDER where duration would normally go, under 128 characters>"}}
 
 JSON only, no other text.
 """
@@ -79,7 +80,7 @@ JSON only, no other text.
 				parsed_json = json.loads(json_str)
 
 				duration = int(parsed_json.get("duration_seconds", 1800))
-				response_message = parsed_json.get("tsundere_message", "Hmph! {} timeout for you, baka! 😤")
+				response_message = parsed_json.get("tsundere_message", "Hmph! DURATION_PLACEHOLDER timeout for you, baka! 😤")
 
 				duration = max(60, min(86400, duration))
 
@@ -89,7 +90,7 @@ JSON only, no other text.
 		except Exception as e:
 			logger.warning(f"AI 691 Response failed: {e}")
 			duration = random.randint(300, 7200)
-			response_message = "Hmph! {} timeout for you, baka! 😤"
+			response_message = "Hmph! DURATION_PLACEHOLDER timeout for you, baka! 😤"
 
 			return duration, response_message
 
@@ -131,7 +132,8 @@ JSON only, no other text.
 		try:
 			timeout_seconds, tsundere_message = await self.get_ai_691_response(message.content)
 			duration_str = self.format_duration(timeout_seconds)
-			tsundere_message = tsundere_message.format(duration_str)
+			if "DURATION_PLACEHOLDER" in tsundere_message:
+				tsundere_message = tsundere_message.replace("DURATION_PLACEHOLDER", duration_str)
 			timeout_until = discord.utils.utcnow() + datetime.timedelta(seconds=timeout_seconds)
 
 			if not config.GAMES_CONFIG.TIMEOUT_VISUAL:
@@ -159,10 +161,10 @@ JSON only, no other text.
 				embed.set_thumbnail(url=thumbnail_url)
 
 			await message.reply(embed=embed, mention_author=False)
-		except discord.Forbidden:
-			pass
-		except discord.HTTPException:
-			pass
+		except discord.Forbidden as e:
+			logger.error(f"691 Game error: {e}")
+		except discord.HTTPException as e:
+			logger.error(f"691 Game error: {e}")
 		except Exception as e:
 			logger.error(f"691 Game error: {e}")
 
