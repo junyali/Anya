@@ -146,13 +146,19 @@ JSON only, no other text.
 			)
 
 			embed.add_field(
-				name=f"📝 Post by {member.mention}",
+				name=f"📝 Post by {member.display_name}",
 				value=f"```{message.content}```",
 				inline=False
 			)
 
+			embed.add_field(
+				name=f"🔓 Release",
+				value=f"<t:{int(timeout_until.timestamp())}:R>",
+				inline=True
+			)
+
 			embed.set_footer(
-				text=f"🔓 Released <t:{int(timeout_until.timestamp())}:R>",
+				text="The bot has spoken.",
 				icon_url=member.display_avatar.url
 			)
 
