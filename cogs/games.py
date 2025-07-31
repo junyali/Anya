@@ -6,6 +6,7 @@ import re
 import config
 import discord
 import datetime
+import aiohttp
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
@@ -96,6 +97,17 @@ JSON only, no other text.
 		pattern = r'^r/691$'
 		return bool(re.match(pattern, content.strip(), re.IGNORECASE))
 
+	async def get_random_anime_image(self, url) -> str:
+		try:
+			async with aiohttp.ClientSession() as session:
+				async with session.get(url) as response:
+					if response.status == 200:
+						data = await response.json()
+						return data.get("url", "")
+		except Exception as e:
+			logger.warning(f"Failed to get anime image: {e}")
+		return ""
+
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
 		if message.author.bot or not message.guild:
@@ -142,7 +154,9 @@ JSON only, no other text.
 				icon_url=member.display_avatar.url
 			)
 
-			embed.set_thumbnail(url="https://api.waifu.pics/sfw/waifu")
+			thumbnail_url = self.get_random_anime_image("https://api.waifu.pics/sfw/waifu")
+			if thumbnail_url:
+				embed.set_thumbnail(url=thumbnail_url)
 
 			await message.reply(embed=embed, mention_author=False)
 		except discord.Forbidden:
