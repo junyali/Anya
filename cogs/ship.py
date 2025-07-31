@@ -99,6 +99,8 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 
 		response = ""
 
+		# logger.info(prompt)
+
 		# i hate working with jsons
 		try:
 			response = await ai_handler.generate_ai_response(prompt)

@@ -77,6 +77,8 @@ class AIHandler:
 
 		response = await self._make_request(messages)
 
+		# logger.info(response)
+
 		if response:
 			response = self._clean_thinking_tags(response)
 
