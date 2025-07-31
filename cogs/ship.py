@@ -1,7 +1,9 @@
+import asyncio
 import logging
 import discord
 import ai_handler
 import json
+import random
 from discord.ext import commands
 from discord import app_commands
 from typing import List, Dict, Any
@@ -111,7 +113,18 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 
 			if start_idx != -1 and end_idx != 0:
 				json_str = response[start_idx:end_idx]
-				return json.loads(json_str)
+				parsed_json = json.loads(json_str)
+
+				if "percentage" not in parsed_json:
+					parsed_json["percentage"] = random.randint(0, 100)
+				if "ship_name" not in parsed_json:
+					parsed_json["ship_name"] = user1_data["info"]["display_name"][:len(user1_data["info"]["display_name"])//2] + user2_data["info"]["display_name"][len(user2_data["info"]["display_name"])//2:]
+				if "message" not in parsed_json:
+					parsed_json["message"] = "The universe has spoken! :3"
+
+				parsed_json["percentage"] = max(0, min(100, int(parsed_json["percentage"])))
+
+				return parsed_json
 			else:
 				return {
 					"percentage": 50,
@@ -147,8 +160,13 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 				await interaction.followup.send("Can't ship someone with themselves! That's just self-love :3", ephemeral=True)
 				return
 
-			user1_messages = await self.get_user_messages(user1)
-			user2_messages = await self.get_user_messages(user2)
+			try:
+				user1_messages = await self.get_user_messages(user1)
+				user2_messages = await self.get_user_messages(user2)
+			except asyncio.TimeoutError:
+				logger.warning("Timed out message retrieval")
+				user1_messages = []
+				user2_messages = []
 
 			user1_data = {
 				"info": self.get_user_info(user1),
@@ -160,7 +178,16 @@ Return ONLY the JSON, no other text. ONLY the JSON.
 				"messages": user2_messages
 			}
 
-			result = await self.analyse_compatibility(user1_data, user2_data)
+			try:
+				result = await self.analyse_compatibility(user1_data, user2_data)
+			except asyncio.TimeoutError:
+				logger.warning("Timed out analysis")
+				await interaction.followup.send("Timed out", ephemeral=True)
+				return
+
+			if not result or "percentage" not in result or "message" not in result or "ship_name" not in result:
+				logger.error(f"Invalid AI response: {result}")
+				await interaction.followup.send("Internal error", ephemeral=True)
 
 			percentage = result["percentage"]
 			filled_hearts = int(percentage / 10)
