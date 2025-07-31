@@ -3,6 +3,9 @@ import ai_handler
 import json
 import random
 import re
+import config
+import discord
+import datetime
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
@@ -92,6 +95,62 @@ JSON only, no other text.
 	def is_691_trigger(self, content: str) -> bool:
 		pattern = r'^r/691$'
 		return bool(re.match(pattern, content.strip(), re.IGNORECASE))
+
+	@commands.Cog.listener()
+	async def on_message(self, message: discord.Message):
+		if message.author.bot or not message.guild:
+			return
+
+		if not self.is_691_trigger(message.content):
+			return
+
+		member = message.author
+
+		if not config.GAMES_CONFIG.TIMEOUT_VISUAL:
+			if not message.guild.me.guild_permissions.moderate_members:
+				return
+
+			if isinstance(member, discord.Member):
+				if member.id == message.guild.owner_id:
+					return
+				if member.top_role >= message.guild.me.top_role:
+					return
+
+		try:
+			timeout_seconds, tsundere_message = await self.get_ai_691_response(message.content)
+			duration_str = self.format_duration(timeout_seconds)
+			tsundere_message = tsundere_message.format(duration_str)
+			timeout_until = discord.utils.utcnow() + datetime.timedelta(seconds=timeout_seconds)
+
+			if not config.GAMES_CONFIG.TIMEOUT_VISUAL:
+				await member.timeout(timeout_until, reason="691")
+
+			embed = discord.Embed(
+				title=f"{random.choice(self.timeout_emojis)} r/691",
+				description=tsundere_message,
+				color=0xFF6B9D
+			)
+
+			embed.add_field(
+				name=f"📝 Post by {member.mention}",
+				value=f"```{message.content}```",
+				inline=False
+			)
+
+			embed.set_footer(
+				text=f"🔓 Released <t:{int(timeout_until.timestamp())}:R>",
+				icon_url=member.display_avatar.url
+			)
+
+			embed.set_thumbnail(url="https://api.waifu.pics/sfw/waifu")
+
+			await message.reply(embed=embed, mention_author=False)
+		except discord.Forbidden:
+			pass
+		except discord.HTTPException:
+			pass
+		except Exception as e:
+			logger.error(f"691 Game error: {e}")
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(GamesCog(bot))

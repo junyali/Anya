@@ -51,6 +51,11 @@ class ModerationConfig:
 	MAX_REASON_LENGTH: int = 256
 	MAX_DURATION_MINUTES: int = 28 * 24 * 60
 
+@dataclass
+class GamesConfig:
+	TIMEOUT_VISUAL: bool = True
+
 BOT_CONFIG = BotConfig()
 ROLEPLAY_CONFIG = RoleplayConfig()
 MODERATION_CONFIG = ModerationConfig()
+GAMES_CONFIG = GamesConfig()
