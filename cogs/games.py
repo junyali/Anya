@@ -11,6 +11,26 @@ class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
+		self.timeout_emojis = ["⏰", "🚪", "💥", "🔨", "⚡", "🎲", "💀", "🎯"]
+
+	def format_duration(self, seconds: int) -> str:
+		if seconds < 60:
+			return f"{seconds} second{"s" if seconds != 1 else ""}"
+		elif seconds < 3600:
+			minutes = seconds // 60
+			remaining_seconds = seconds % 60
+			if remaining_seconds == 0:
+				return f"{minutes} minute{"s" if minutes != 1 else ""}"
+			else:
+				return f"{minutes}m {remaining_seconds}s"
+		else:
+			hours = seconds // 3600
+			remaining_minutes = (seconds % 3600) // 60
+			if remaining_minutes == 0:
+				return f"{hours} hour{"s" if hours != 1 else ""}"
+			else:
+				return f"{hours}h {remaining_minutes}m"
+
 	async def get_ai_691_response(self, message: str) -> tuple[int, str]:
 		prompt = f"""
 A 691 game has been triggered by posting "r/691". Generate a JSON response with timeout duration and tsundere message.
@@ -26,13 +46,13 @@ Duration guidelines:
 Message: {message}
 
 Tsundere response examples:
-- "Hmph! You asked for it, baka! Enjoy your {{}} second timeout! 😤"
-- "I-It's not like I wanted to timeout you or anything! {{}} second should teach you! 😤"
-- "S-Stupid! Did you really think you'd get away with that?! {{}} second timeout for you!"
-- "Ugh! Fine! Take your {{}} second timeout and think about what you've done, idiot!"
-- "D-Don't get the wrong idea! I'm only timing you out for {{}} seconds because I have to!"
-- "You're so annoying! Here's your {{}} second timeout! Maybe that'll teach you!"
-- "N-Not that I'm enjoying this... but {{}} second timeout seems fitting, baka!"
+- "Hmph! You asked for it, baka! Enjoy your {{}} timeout! 😤"
+- "I-It's not like I wanted to timeout you or anything! {{}} should teach you! 😤"
+- "S-Stupid! Did you really think you'd get away with that?! {{}} for you!"
+- "Ugh! Fine! Take your {{}} and think about what you've done, idiot!"
+- "D-Don't get the wrong idea! I'm only timing you out for {{}} because I have to!"
+- "You're so annoying! Here's your {{}} timeout! Maybe that'll teach you!"
+- "N-Not that I'm enjoying this... but {{}} timeout seems fitting, baka!"
 
 Respond with ONLY this JSON format:
 {{
