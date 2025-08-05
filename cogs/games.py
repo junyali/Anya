@@ -308,7 +308,7 @@ class MinesweeperGame:
 							if dy == 0 and dx == 0:
 								continue
 							ny, nx = y + dy, x + dx
-							if 0 <= ny < self.height and 0 <= self.width and self.grid[ny][nx].is_mine:
+							if 0 <= ny < self.height and 0 <= nx < self.width and self.grid[ny][nx].is_mine:
 								count += 1
 					self.grid[y][x].adjacent_mines = count
 
@@ -385,7 +385,7 @@ class MinesweeperView(discord.ui.View):
 		for y in range(5):
 			for x in range(5):
 				button = MinesweeperButton(x, y, self.game.grid[y][x])
-				button.row = y + 1
+				button.row = y
 				self.add_item(button)
 
 	async def _toggle_mode(self, interaction: discord.Interaction):
