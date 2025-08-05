@@ -174,6 +174,12 @@ class BlackjackView(discord.ui.View):
 			elif dealer_blackjack and not player_blackjack:
 				self.game.player_won = False
 
+		self._disable_buttons()
+
+	def _disable_buttons(self):
+		for item in self.children:
+			item.disabled = True
+
 	def create_embed(self):
 		if self.game.game_over:
 			colour = 0x00ff00 if self.game.player_won else 0xff0000 if self.game.player_won is False else 0xffff00
@@ -211,8 +217,7 @@ class BlackjackView(discord.ui.View):
 		embed = self.create_embed()
 
 		if self.game.game_over:
-			for item in self.children:
-				item.disabled = True
+			self._disable_buttons()
 
 		await interaction.response.edit_message(embed=embed, view=self)
 
@@ -243,8 +248,7 @@ class BlackjackView(discord.ui.View):
 		await self.update_message(interaction)
 
 	async def on_timeout(self):
-		for item in self.children:
-			item.disabled = True
+		self._disable_buttons()
 
 		try:
 			embed = self.create_embed()
