@@ -126,6 +126,33 @@ class BlackjackGame:
 		else:
 			self.player_won = None
 
+	def get_game_state(self) -> str:
+		player_blackjack = self.player_hand.is_blackjack()
+		player_bust = self.player_hand.is_bust()
+
+		dealer_blackjack = self.dealer_hand.is_blackjack()
+		dealer_bust = self.dealer_hand.is_bust()
+
+		if player_blackjack and dealer_blackjack:
+			return "⚔ Draw!"
+		elif player_blackjack:
+			return "🎉 Blackjack! You win!"
+		elif dealer_blackjack:
+			return "💀 Dealer Blackjack! You lose!"
+		elif player_bust:
+			return "💥 Bust! You lose!"
+		elif dealer_bust:
+			return "💢 Dealer Bust! You win!"
+		elif self.game_over:
+			if self.player_won is True:
+				return "🎉 You win!"
+			elif self.player_won is False:
+				return "💀 You lose!"
+			else:
+				return "⚔ Draw!"
+		else:
+			return "🎲 Game in progress..."
+
 class BlackjackView(discord.ui.View):
 	def __init(self, user_id: int):
 		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
