@@ -8,8 +8,74 @@ import discord
 import datetime
 import aiohttp
 from discord.ext import commands
+from typing import List
 
 logger = logging.getLogger(__name__)
+
+class Card:
+	def __init__(self, suit: str, rank: str, value: int):
+		self.suit = suit
+		self.rank = rank
+		self.value = value
+
+	def __str__(self) -> str:
+		return f"{self.rank}{self.suit}"
+
+	@property
+	def display_name(self):
+		return f"{self.rank} of {self.suit}"
+
+class BlackjackHand:
+	def __init__(self):
+		self.cards: List[Card] = []
+
+	def add_card(self, card: Card):
+		self.cards.append(card)
+
+	def get_value(self) -> int:
+		total = 0
+		aces = 0
+
+		for card in self.cards:
+			if card.rank == "A":
+				aces += 1
+				total += 11
+			else:
+				total += card.value
+
+		while total > 21 and aces > 0:
+			total -= 10
+			aces -= 1
+
+		return total
+
+	def is_blackjack(self) -> bool:
+		return len(self.cards) == 2 and self.get_value() == 21
+
+	def is_bust(self) -> bool:
+		return self.get_value() > 21
+
+	def display(self, hide_first: bool = False) -> str:
+		if hide_first and len(self.cards) > 0:
+			visible_cards = ["🃏"] + [str(card) for card in self.cards[1:]]
+			# hopefully this looks right :sob:
+			return " ".join(visible_cards) + f" (? + {self.get_value() - self.cards[0].value})"
+		else:
+			return " ".join(str(card) for card in self.cards) + f" ({self.get_value()})"
+
+class BlackjackGame:
+	def __init__(self):
+		self.deck = []
+		self.player_hand = BlackjackHand()
+		self.dealer_hand = BlackjackHand()
+		self.game_over = False
+		self.player_won = None
+
+class BlackjackView(discord.ui.View):
+	def __init(self, user_id: int):
+		super().__init__(timeout=60.0)
+		self.user_id = user_id
+		self.game = BlackjackGame()
 
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
