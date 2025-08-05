@@ -369,6 +369,89 @@ class MinesweeperView(discord.ui.View):
 		self.game = MinesweeperGame()
 		self.flag_mode = False
 
+		self._create_buttons()
+
+	def _create_buttons(self):
+		self.clear_items()
+
+		mode_button = discord.ui.Button(
+			label="🚩 Flag Mode" if not self.flag_mode else "👆 Reveal Mode",
+			style=discord.ButtonStyle.secondary,
+			row=0
+		)
+		mode_button.callback = self._toggle_mode
+		self.add_item(mode_button)
+
+		for y in range(5):
+			for x in range(5):
+				button = MinesweeperButton(x, y, self.game.grid[y][x])
+				button.row = y + 1
+				self.add_item(button)
+
+	async def _toggle_mode(self, interaction: discord.Interaction):
+		if interaction.user.id != self.user_id:
+			await interaction.response.send_message("This is not your game! >:(", ephemeral=True)
+			return
+
+		self.flag_mode = not self.flag_mode
+		self._create_buttons()
+		await self._update_game(interaction)
+
+	def create_embed(self) -> discord.Embed:
+		if self.game.game_over:
+			if self.game.won:
+				colour = 0x00ff00
+				title = "🏆 Victory!"
+				description = f"🎉 {self.username} cleared the minefield!"
+			else:
+				colour = 0xff0000
+				title = "💥 KABOOM!"
+				description = f"💀 {self.username} hit a mine!"
+		else:
+			colour = 0x3498db
+			title = "💣 Minesweeper"
+			mode_text = "🚩 Flag Mode" if self.flag_mode else "👆 Reveal Mode"
+			description = f"🎯 {self.username}'s game | {mode_text}"
+
+		embed = discord.Embed(
+			title=title,
+			description=description,
+			color=colour
+		)
+
+		embed.add_field(
+			name="📊 Stats",
+			value=f"🚩 Flags: {self.game.flags_remaining}/6\n💣 Mines: 6",
+			inline=True
+		)
+
+		return embed
+
+	async def _update_game(self, interaction: discord.Interaction):
+		embed = self.create_embed()
+
+		if self.game.game_over:
+			for item in self.children:
+				item.disabled = True
+
+		await interaction.response.edit_message(embed=embed, view=self)
+
+	async def handle_cell_click(self, interaction: discord.Interaction, x: int, y: int):
+		if interaction.user.id != self.user_id:
+			await interaction.response.send_message("This is not your game! >:(", ephemeral=True)
+			return
+
+		if self.game.game_over:
+			return
+
+		if self.flag_mode:
+			self.game.toggle_flag(x, y)
+		else:
+			self.game.reveal_cell(x, y)
+
+		self._create_buttons()
+		await self._update_game(interaction)
+
 class MinesweeperButton(discord.ui.Button):
 	def __init__(self, x: int,  y: int, cell: MinesweeperCell):
 		self.x = x
@@ -395,8 +478,7 @@ class MinesweeperButton(discord.ui.Button):
 		super().__init__(emoji=emoji, style=style)
 
 	async def callback(self, interaction: discord.Interaction):
-		# tba
-		pass
+		await self.view.handle_cell_click(interaction, self.x, self.y)
 
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
@@ -419,7 +501,9 @@ class GamesCog(commands.Cog):
 	async def minesweeper_command(self, interaction: discord.Interaction):
 		try:
 			view = MinesweeperView(interaction.user.id, interaction.user.display_name)
-			pass
+			embed = view.create_embed()
+
+			await interaction.response.send_message(embed=embed, view=view)
 		except Exception as e:
 			logger.error(f"Error occurred starting Minesweeper game: {e}")
 			await interaction.response.send_message("Internal error occurred!", ephemeral=True)
