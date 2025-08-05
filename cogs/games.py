@@ -66,17 +66,78 @@ class BlackjackHand:
 
 class BlackjackGame:
 	def __init__(self):
-		self.deck = []
+		self.deck = self._create_deck()
 		self.player_hand = BlackjackHand()
 		self.dealer_hand = BlackjackHand()
 		self.game_over = False
 		self.player_won = None
+
+	def _create_deck(self) -> List[Card]:
+		suits = ["♠", "♥", "♦", "♣"]
+		rank_values = [
+			("2", 2),
+			("3", 3),
+			("4", 4),
+			("5", 5),
+			("6", 6),
+			("7", 7),
+			("8", 8),
+			("9", 9),
+			("10", 10),
+			("J", 10),
+			("Q", 10),
+			("K", 10),
+			("A", 11)
+		]
+
+		deck = []
+
+		for suit in suits:
+			for rank, value in rank_values:
+				deck.append(Card(suit, rank, value))
+
+		random.shuffle(deck)
+		return deck
+
+	def draw_card(self) -> Card:
+		return self.deck.pop()
+
+	def player_hit(self):
+		self.player_hand.add_card(self.draw_card())
+		if self.player_hand.is_bust():
+			self.game_over = True
+			self.player_won = False
+
+	def player_stand(self):
+		while self.dealer_hand.get_value() < 17:
+			self.dealer_hand.add_card(self.draw_card())
+
+		self.game_over = True
+
+		player_value = self.player_hand.get_value()
+		dealer_value = self.dealer_hand.get_value()
+
+		if self.dealer_hand.is_bust():
+			self.player_won = True
+		elif player_value > dealer_value:
+			self.player_won = True
+		elif player_value < dealer_value:
+			self.player_won = False
+		else:
+			self.player_won = None
 
 class BlackjackView(discord.ui.View):
 	def __init(self, user_id: int):
 		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
 		self.user_id = user_id
 		self.game = BlackjackGame()
+
+		if self.game.player_hand.is_blackjack() or self.game.dealer_hand.is_blackjack():
+			self.game.game_over = True
+			if self.game.player_hand.is_blackjack() and not self.game.dealer_hand.is_blackjack():
+				self.game.player_won = True
+			elif self.game.dealer_hand.is_blackjack() and not self.game.player_hand.is_blackjack():
+				self.game.player_won = False
 
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
