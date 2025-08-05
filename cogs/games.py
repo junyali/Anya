@@ -474,7 +474,7 @@ class MinesweeperButton(discord.ui.Button):
 			emoji = "⬜"
 			style = discord.ButtonStyle.secondary
 
-		super().__init__(emoji=emoji, style=style)
+		super().__init__(label=emoji, style=style)
 
 	async def callback(self, interaction: discord.Interaction):
 		await self.view.handle_cell_click(interaction, self.x, self.y)
