@@ -175,8 +175,6 @@ class BlackjackView(discord.ui.View):
 			elif dealer_blackjack and not player_blackjack:
 				self.game.player_won = False
 
-		self._disable_buttons()
-
 	def _disable_buttons(self):
 		for item in self.children:
 			item.disabled = True
@@ -207,6 +205,7 @@ class BlackjackView(discord.ui.View):
 		)
 
 		if self.game.game_over:
+			self._disable_buttons()
 			embed.set_footer(text="Game Over!")
 		else:
 			embed.set_footer(text="Awaiting action..")
