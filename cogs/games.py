@@ -158,7 +158,7 @@ class BlackjackGame:
 			return "🎲 Game in progress..."
 
 class BlackjackView(discord.ui.View):
-	def __init(self, user_id: int):
+	def __init__(self, user_id: int):
 		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
 		self.user_id = user_id
 		self.game = BlackjackGame()
