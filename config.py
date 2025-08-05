@@ -53,7 +53,10 @@ class ModerationConfig:
 
 @dataclass
 class GamesConfig:
+	# aahh ffs discord why couldn't you just call it mute????
 	TIMEOUT_VISUAL: bool = True
+
+	GAME_TIMEOUT: bool = 60.0
 
 BOT_CONFIG = BotConfig()
 ROLEPLAY_CONFIG = RoleplayConfig()

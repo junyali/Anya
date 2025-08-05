@@ -12,6 +12,7 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+# TODO: probably better to make this a separate module
 class Card:
 	def __init__(self, suit: str, rank: str, value: int):
 		self.suit = suit
@@ -73,7 +74,7 @@ class BlackjackGame:
 
 class BlackjackView(discord.ui.View):
 	def __init(self, user_id: int):
-		super().__init__(timeout=60.0)
+		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
 		self.user_id = user_id
 		self.game = BlackjackGame()
 
