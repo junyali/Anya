@@ -223,11 +223,18 @@ class AnyaBot(commands.Bot):
 
 			if emoji_response and emoji_response != "none":
 				await message.add_reaction(emoji_response)
-
+		except aiohttp.ClientError as e:
+			logging.warning(e)
 		except discord.HTTPException as e:
 			logging.warning(e)
 		except Exception as e:
 			logging.error(e)
+		finally:
+			try:
+				if hasattr(message.channel, "typing"):
+					await message.channel.typing().__aexit__(None, None, None)
+			except:
+				pass
 
 	@app_commands.command(name="ai-model", description="Get the current AI model being used by the bot")
 	async def ai_model_command(self, interaction: discord.Interaction):
