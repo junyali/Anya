@@ -255,8 +255,6 @@ class BlackjackView(discord.ui.View):
 		except:
 			pass
 
-
-
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
@@ -274,6 +272,14 @@ class GamesCog(commands.Cog):
 			logger.error(f"Error occurred starting Blackjack game: {e}")
 			await interaction.response.send_message("Internal error occurred!", ephemeral=True)
 
+	@app_commands.command(name="minesweeper", description="Play a game of minesweeper!")
+	async def minesweeper_command(self, interaction: discord.Interaction):
+		try:
+			# tba
+			pass
+		except Exception as e:
+			logger.error(f"Error occurred starting Minesweeper game: {e}")
+			await interaction.response.send_message("Internal error occurred!", ephemeral=True)
 
 	def format_duration(self, seconds: int) -> str:
 		if seconds < 60:
