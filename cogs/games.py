@@ -270,9 +270,9 @@ class MinesweeperCell:
 
 class MinesweeperGame:
 	def __init__(self):
-		self.width = 5
-		self.height = 5
-		self.mines = 6
+		self.width = 4
+		self.height = 4
+		self.mines = 4
 
 		self.grid: List[List[MinesweeperCell]] = []
 		self.game_over = False
@@ -376,16 +376,15 @@ class MinesweeperView(discord.ui.View):
 
 		mode_button = discord.ui.Button(
 			label="🚩 Flag Mode" if not self.flag_mode else "👆 Reveal Mode",
-			style=discord.ButtonStyle.secondary,
-			row=0
+			style=discord.ButtonStyle.secondary
 		)
 		mode_button.callback = self._toggle_mode
 		self.add_item(mode_button)
 
-		for y in range(5):
-			for x in range(5):
+		for y in range(4):
+			for x in range(4):
 				button = MinesweeperButton(x, y, self.game.grid[y][x])
-				button.row = y
+				button.row = y + 1
 				self.add_item(button)
 
 	async def _toggle_mode(self, interaction: discord.Interaction):
