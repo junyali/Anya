@@ -10,6 +10,7 @@ import aiohttp
 from discord import app_commands
 from discord.ext import commands
 from typing import List
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -255,6 +256,43 @@ class BlackjackView(discord.ui.View):
 		except:
 			pass
 
+class CellState(Enum):
+	HIDDEN = 0
+	REVEALED = 1
+	FLAGGED = 2
+
+class MinesweeperCell:
+	def __init__(self):
+		self.is_mine = False
+		self.adjacent_mines = 0
+		self.state = CellState.HIDDEN
+
+class MinesweeperGame:
+	def __init__(self):
+		self.width = 5
+		self.height = 5
+		self.mines = 6
+
+		self.grid: List[List[MinesweeperCell]] = []
+		self.game_over = False
+		self.won = False
+		self.first_click = True
+		self.flags_remaining = self.mines
+
+		for y in range(self.height):
+			row = []
+			for x in range(self.width):
+				row.append(MinesweeperCell())
+			self.grid.append(row)
+
+class MinesweeperView(discord.ui.View):
+	def __init__(self, user_id: int, username: str):
+		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
+		self.user_id = user_id
+		self.username = username
+		self.game = MinesweeperGame()
+		self.flag_mode = False
+
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
@@ -275,7 +313,7 @@ class GamesCog(commands.Cog):
 	@app_commands.command(name="minesweeper", description="Play a game of minesweeper!")
 	async def minesweeper_command(self, interaction: discord.Interaction):
 		try:
-			# tba
+			view = MinesweeperView(interaction.user.id, interaction.user.display_name)
 			pass
 		except Exception as e:
 			logger.error(f"Error occurred starting Minesweeper game: {e}")
