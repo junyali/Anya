@@ -451,6 +451,16 @@ class MinesweeperView(discord.ui.View):
 		self._create_buttons()
 		await self._update_game(interaction)
 
+	async def on_timeout(self):
+		for item in self.children:
+			item.disabled = True
+
+		try:
+			embed = self.create_embed()
+			embed.set_footer(text="⏰ Timed out!")
+		except:
+			pass
+
 class MinesweeperButton(discord.ui.Button):
 	def __init__(self, x: int,  y: int, cell: MinesweeperCell):
 		self.x = x
