@@ -72,6 +72,10 @@ class BlackjackGame:
 		self.game_over = False
 		self.player_won = None
 
+		for i in range(2):
+			self.player_hand.add_card(self.draw_card())
+			self.dealer_hand.add_card(self.draw_card())
+
 	def _create_deck(self) -> List[Card]:
 		suits = ["♠", "♥", "♦", "♣"]
 		rank_values = [
