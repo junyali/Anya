@@ -255,9 +255,14 @@ def setup_logging():
 	console_handler.setLevel(logging.DEBUG)
 	console_handler.setFormatter(formatter)
 
+	file_handler = logging.FileHandler("anya.log")
+	file_handler.setLevel(logging.WARNING)
+	file_handler.setFormatter(formatter)
+
 	root_logger = logging.getLogger()
 	root_logger.setLevel(logging.DEBUG)
 	root_logger.addHandler(console_handler)
+	root_logger.addHandler(file_handler)
 
 	logger = logging.getLogger(__name__)
 
