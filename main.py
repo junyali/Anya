@@ -10,7 +10,6 @@ from discord import app_commands
 from config import BOT_CONFIG
 from collections import deque, defaultdict
 
-
 class RateLimiter:
 	def __init__(self):
 		self.__max_messages = BOT_CONFIG.RATE_LIMIT_MESSAGES
@@ -116,6 +115,8 @@ class AnyaBot(commands.Bot):
 	def __init__(self):
 		intents = discord.Intents.default()
 		intents.message_content = True
+		intents.guilds = True
+		intents.guild_messages = True
 
 		super().__init__(
 			command_prefix=BOT_CONFIG.COMMAND_PREFIX,
