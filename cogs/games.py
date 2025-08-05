@@ -285,6 +285,81 @@ class MinesweeperGame:
 				row.append(MinesweeperCell())
 			self.grid.append(row)
 
+	def place_mines(self, safe_x: int, safe_y: int):
+		mines_placed = 0
+
+		while mines_placed < self.mines:
+			x = random.randint(0, self.width - 1)
+			y = random.randint(0, self.height - 1)
+
+			if (x == safe_x and y == safe_y) or self.grid[y][x].is_mine:
+				continue
+
+			self.grid[y][x].is_mine = True
+			mines_placed += 1
+
+		for y in range(self.height):
+			for x in range(self.width):
+				if not self.grid[y][x].is_mine:
+					count = 0
+					for dy in [-1, 0, 1]:
+						for dx in [-1, 0, 1]:
+							if dy == 0 and dx == 0:
+								continue
+							ny, nx = y + dy, x + dx
+							if 0 <= ny < self.height and 0 <= self.width and self.grid[ny][nx].is_mine:
+								count += 1
+					self.grid[y][x].adjacent_mines = count
+
+	def reveal_cell(self, x: int, y: int):
+		if x < 0 or x >= self.width or y < 0 or y >= self.height or self.grid[y][x].state != CellState.HIDDEN:
+			return
+
+		if self.first_click:
+			self.place_mines(x, y)
+			self.first_click = False
+
+		cell = self.grid[y][x]
+		cell.state = CellState.REVEALED
+
+		if cell.is_mine:
+			self.game_over = True
+			self.won = False
+			for row in self.grid:
+				for c in row:
+					if c.is_mine:
+						c.state = CellState.REVEALED
+			return
+
+		if cell.adjacent_mines == 0:
+			for dy in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					if dy == 0 and dx == 0:
+						continue
+					self.reveal_cell(x + dx, y + dy)
+
+		revealed_count = 0
+		for row in self.grid:
+			for c in row:
+				if not c.is_mine and c.state == CellState.REVEALED:
+					revealed_count += 1
+
+		if revealed_count == (self.width * self.height - self.mines):
+			self.game_over = True
+			self.won = True
+
+	def toggle_flag(self, x: int, y: int):
+		if x < 0 or x >= self.width or y < 0 or y >= self.height or self.grid[y][x].state == CellState.REVEALED:
+			return
+
+		cell = self.grid[y][x]
+		if cell.state == CellState.FLAGGED:
+			cell.state = CellState.HIDDEN
+			self.flags_remaining += 1
+		elif cell.state == CellState.HIDDEN and self.flags_remaining > 0:
+			cell.state = CellState.FLAGGED
+			self.flags_remaining -= 1
+
 class MinesweeperView(discord.ui.View):
 	def __init__(self, user_id: int, username: str):
 		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
