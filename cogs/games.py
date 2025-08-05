@@ -131,7 +131,7 @@ class BlackjackGame:
 		else:
 			self.player_won = None
 
-	def get_game_state(self) -> str:
+	def get_game_state(self, username: str = "Player") -> str:
 		player_blackjack = self.player_hand.is_blackjack()
 		player_bust = self.player_hand.is_bust()
 
@@ -141,27 +141,28 @@ class BlackjackGame:
 		if player_blackjack and dealer_blackjack:
 			return "⚔ Draw!"
 		elif player_blackjack:
-			return "🎉 Blackjack! You win!"
+			return f"🎉 Blackjack! {username} won!"
 		elif dealer_blackjack:
-			return "💀 Dealer Blackjack! You lose!"
+			return f"💀 Dealer Blackjack! {username} lost!"
 		elif player_bust:
-			return "💥 Bust! You lose!"
+			return f"💥 Bust! {username} lost!"
 		elif dealer_bust:
-			return "💢 Dealer Bust! You win!"
+			return f"💢 Dealer Bust! {username} won!"
 		elif self.game_over:
 			if self.player_won is True:
-				return "🎉 You win!"
+				return f"🎉 {username} won!"
 			elif self.player_won is False:
-				return "💀 You lose!"
+				return f"💀 {username} lost!"
 			else:
 				return "⚔ Draw!"
 		else:
 			return "🎲 Game in progress..."
 
 class BlackjackView(discord.ui.View):
-	def __init__(self, user_id: int):
+	def __init__(self, user_id: int, username: str):
 		super().__init__(timeout=config.GAMES_CONFIG.GAME_TIMEOUT)
 		self.user_id = user_id
+		self.username = username
 		self.game = BlackjackGame()
 
 		player_blackjack = self.game.player_hand.is_blackjack()
@@ -188,7 +189,7 @@ class BlackjackView(discord.ui.View):
 
 		embed = discord.Embed(
 			title="🃏 Blackjack",
-			description=self.game.get_game_state(),
+			description=self.game.get_game_state(self.username),
 			color=colour
 		)
 
@@ -199,9 +200,8 @@ class BlackjackView(discord.ui.View):
 			inline=False
 		)
 
-		# TODO: Make messages personalised to the user
 		embed.add_field(
-			name="🎯 Your Hand",
+			name=f"🎯 {self.username}'s Hand",
 			value=self.game.player_hand.display(),
 			inline=False
 		)
@@ -267,7 +267,7 @@ class GamesCog(commands.Cog):
 	@app_commands.command(name="blackjack", description="Play a game of blackjack against Anya!")
 	async def blackjack_command(self, interaction: discord.Interaction):
 		try:
-			view = BlackjackView(interaction.user.id)
+			view = BlackjackView(interaction.user.id, interaction.user.display_name)
 			embed = view.create_embed()
 
 			await interaction.response.send_message(embed=embed, view=view)
