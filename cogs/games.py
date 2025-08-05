@@ -7,6 +7,7 @@ import config
 import discord
 import datetime
 import aiohttp
+from discord import app_commands
 from discord.ext import commands
 from typing import List
 
@@ -258,6 +259,18 @@ class GamesCog(commands.Cog):
 		self.bot = bot
 
 		self.timeout_emojis = ["⏰", "🚪", "💥", "🔨", "⚡", "🎲", "💀", "🎯"]
+
+	@app_commands.command(name="blackjack", description="Play a game of blackjack against Anya!")
+	async def blackjack_command(self, interaction: discord.Interaction):
+		try:
+			view = BlackjackView(interaction.user.id)
+			embed = view.create_embed()
+
+			await interaction.response.send_message(embed=embed, view=view)
+		except Exception as e:
+			logger.error(f"Error occurred starting Blackjack game: {e}")
+			await interaction.response.send_message("Internal error occurred!", ephemeral=True)
+
 
 	def format_duration(self, seconds: int) -> str:
 		if seconds < 60:
