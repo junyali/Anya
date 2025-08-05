@@ -256,6 +256,7 @@ class BlackjackView(discord.ui.View):
 		except:
 			pass
 
+# TODO: i really should make these separate modules
 class CellState(Enum):
 	HIDDEN = 0
 	REVEALED = 1
@@ -367,6 +368,35 @@ class MinesweeperView(discord.ui.View):
 		self.username = username
 		self.game = MinesweeperGame()
 		self.flag_mode = False
+
+class MinesweeperButton(discord.ui.Button):
+	def __init__(self, x: int,  y: int, cell: MinesweeperCell):
+		self.x = x
+		self.y = y
+		self.cell = cell
+
+		if cell.state == CellState.FLAGGED:
+			emoji = "🚩"
+			style = discord.ButtonStyle.danger
+		elif cell.state == CellState.REVEALED:
+			if cell.is_mine:
+				emoji = "💥"
+				style = discord.ButtonStyle.danger
+			elif cell.adjacent_mines == 0:
+				emoji = "⬛"
+				style = discord.ButtonStyle.secondary
+			else:
+				emoji = f"{cell.adjacent_mines}"
+				style = discord.ButtonStyle.primary
+		else:
+			emoji = "⬜"
+			style = discord.ButtonStyle.secondary
+
+		super().__init__(emoji=emoji, style=style)
+
+	async def callback(self, interaction: discord.Interaction):
+		# tba
+		pass
 
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
