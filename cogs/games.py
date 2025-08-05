@@ -132,14 +132,14 @@ class BlackjackView(discord.ui.View):
 		self.user_id = user_id
 		self.game = BlackjackGame()
 
-		player_bj = self.game.player_hand.is_blackjack()
-		dealer_bj = self.game.dealer_hand.is_blackjack()
+		player_blackjack = self.game.player_hand.is_blackjack()
+		dealer_blackjack = self.game.dealer_hand.is_blackjack()
 
-		if player_bj or dealer_bj:
+		if player_blackjack or dealer_blackjack:
 			self.game.game_over = True
-			if player_bj and not dealer_bj:
+			if player_blackjack and not dealer_blackjack:
 				self.game.player_won = True
-			elif dealer_bj and not player_bj:
+			elif dealer_blackjack and not player_blackjack:
 				self.game.player_won = False
 
 class GamesCog(commands.Cog):
