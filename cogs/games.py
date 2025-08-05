@@ -169,6 +169,86 @@ class BlackjackView(discord.ui.View):
 			elif dealer_blackjack and not player_blackjack:
 				self.game.player_won = False
 
+	def create_embed(self):
+		if self.game.game_over:
+			colour = 0x00ff00 if self.game.player_won else 0xff0000 if self.game.player_won is False else 0xffff00
+		else:
+			colour = 0x3498db
+
+		embed = discord.Embed(
+			title="🃏 Blackjack",
+			description=self.game.get_game_state(),
+			color=colour
+		)
+
+		dealer_display = self.game.dealer_hand.display(hide_first=not self.game.game_over)
+		embed.add_field(
+			name="🤖 Dealer's Hand",
+			value=dealer_display,
+			inline=False
+		)
+
+		# TODO: Make messages personalised to the user
+		embed.add_field(
+			name="🎯 Your Hand",
+			value=self.game.player_hand.display(),
+			inline=False
+		)
+
+		if self.game.game_over:
+			embed.set_footer(text="Game Over!")
+		else:
+			embed.set_footer(text="Awaiting action..")
+
+		return embed
+
+	async def update_message(self, interaction: discord.Interaction):
+		embed = self.create_embed()
+
+		if self.game.game_over:
+			for item in self.children:
+				item.disabled = True
+
+		await interaction.response.edit_message(embed=embed, view=self)
+
+	@discord.ui.button(label="Hit", style=discord.ButtonStyle.primary, emoji="🎯")
+	async def hit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != self.user_id:
+			await interaction.response.send_message("This is not your game! >:(", ephemeral=True)
+			return
+
+		if self.game.game_over:
+			await interaction.response.send_message("Game already over! >:(", ephemeral=True)
+			return
+
+		self.game.player_hit()
+		await self.update_message(interaction)
+
+	@discord.ui.button(label="Stand", style=discord.ButtonStyle.secondary, emoji="✋")
+	async def stand_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != self.user_id:
+			await interaction.response.send_message("This is not your game! >:(", ephemeral=True)
+			return
+
+		if self.game.game_over:
+			await interaction.response.send_message("Game already over! >:(", ephemeral=True)
+			return
+
+		self.game.player_stand()
+		await self.update_message(interaction)
+
+	async def on_timeout(self):
+		for item in self.children:
+			item.disabled = True
+
+		try:
+			embed = self.create_embed()
+			embed.set_footer(text="⏰ Timed out!")
+		except:
+			pass
+
+
+
 class GamesCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
