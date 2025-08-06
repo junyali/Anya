@@ -24,28 +24,35 @@
 ### Basic Chat
 
 Mention the bot or DM it for a simple one-way convo!
+
 ![Basic Chat](./demo/aichat_1.png)
 
 ### AI Moderation
 
 Request moderation in natural language and your wish is her command!
+
 ![AI Moderation](./demo/aimoderation_1.png)
 
 ### Roleplay
 
 Make Anya roleplay as any character you want!
+
 ![Roleplay](./demo/airoleplay_1.png)
 
 ### Ship
 
 *sigh*..
+
 ![Ship](./demo/aiship_1.png)
 
 ### Games
 
 Anya can entertain too!
+
 ![691](./demo/ai691_1.png)
+
 ![Blackjack](./demo/blackjack_1.png)
+
 ![Minesweeper](./demo/minesweeper_1.png)
 
 ## How to run
