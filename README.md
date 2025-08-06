@@ -11,6 +11,9 @@
 - **AI Moderation**: Make a moderation request in natural language and your wish is her command! (No literally, just say you want to ban someone with a mention - no need for silly commands!)
 - **~~AI~~ Moderation Tools**: Slash commands for moderating your server... ~~wait this already exists natively in Discord~~ okay fine, **cooler** command names like **shush** and **exile** :D
 - **AI Roleplay**: Create threads to chat with your favourite AI characters using my lovely presets, or your own custom prompts for custom personalities! It also comes with a (limited) context history unlike AI Response with Anya herself :O
+- **AI Ship**: Your favourite anime romance <3
+- **AI r/691**: Anya is the new Roomba.
+- **~~AI~~ Games**: Blackjack and Minesweeper for now :)
 - **Security**: It does the job. You get what you're given. **⚠ Do not use this in production**
   - **DO NOT USE THIS IN PRODUCTION. YOU HAVE BEEN WARNED!!**
   - **PLEASE.**
@@ -32,6 +35,18 @@ Request moderation in natural language and your wish is her command!
 
 Make Anya roleplay as any character you want!
 ![Roleplay](./demo/airoleplay_1.png)
+
+### Ship
+
+*sigh*..
+![Ship](./demo/aiship_1.png)
+
+### Games
+
+Anya can entertain too!
+![691](./demo/ai691_1.png)
+![Blackjack](./demo/blackjack_1.png)
+![Minesweeper](./demo/minesweeper_1.png)
 
 ## How to run
 
@@ -99,6 +114,10 @@ Edit `config.py` to adjust bot behaviour. Some stuff still might be hardcoded.
 - `CLEANUP_INTERVAL_SECONDS` - How often the bot should check for inactivity
 - `THREAD_AUTO_ARCHIVE_MINUTES` - How long before the bot should automatically archive inactive threads
 
+### Game Settings
+- `TIMEOUT_VISUAL` - Whether to not timeout users after triggering r/691 (requires permissions)
+- `GAME_TIMEOUT` - How long a game lasts for without action
+
 
 - The rest of the configuration is self-explanatory
 
@@ -109,12 +128,16 @@ Edit `config.py` to adjust bot behaviour. Some stuff still might be hardcoded.
 - `/end-roleplay` - End current roleplay session
 - `/ai-model` - Show current LLM used
 
+- `/ship <user1> <user2>` - Ship two users
 
 - `/exile <user> [reason] [delete_messages]` - Ban user
 - `/kick <user> [reason]` - Kick user
 - `/shush <user> <duration> [reason]` - Timeout user
 - `/unshush <user> [reason]` - Remove timeout from user
 - `/unexile <user_id> [reason]` - Unban user
+
+- `/blackjack` - Start a game of Blackjack against the bot
+- `/minesweeper` - Run a 4x4 game of Minesweeper
 
 ## Presets
 Character presets are stored in the `rpprests/` directory. Create Python files with character definitions
